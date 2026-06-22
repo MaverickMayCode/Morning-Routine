@@ -9,391 +9,151 @@
 <title>Morning Machine</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg:      #08090b;
-    --surface: #0f1114;
-    --card:    #13161a;
-    --border:  #1c2028;
-    --accent:  #00e5ff;
-    --gold:    #f5c518;
-    --green:   #39d98a;
-    --purple:  #a855f7;
-    --red:     #ff4d6d;
-    --orange:  #f97316;
-    --text:    #e8eaed;
-    --muted:   #5a6270;
-    --dimmed:  #2e333c;
+    --bg:#08090b; --surface:#0f1114; --card:#13161a; --border:#1c2028;
+    --accent:#00e5ff; --gold:#f5c518; --green:#39d98a; --purple:#a855f7;
+    --red:#ff4d6d; --orange:#f97316; --text:#e8eaed; --muted:#5a6270; --dimmed:#2e333c;
   }
+  html, body { height:100%; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; overscroll-behavior:none; -webkit-tap-highlight-color:transparent; }
+  body { display:flex; flex-direction:column; min-height:100vh; padding-bottom:env(safe-area-inset-bottom); }
 
-  html, body {
-    height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    overscroll-behavior: none;
-    -webkit-tap-highlight-color: transparent;
-  }
+  .app-header { position:sticky; top:0; z-index:100; background:rgba(8,9,11,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:14px 20px 12px; border-bottom:1px solid var(--border); }
+  .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .app-title { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:0.05em; line-height:1; }
+  .app-title span { color:var(--accent); }
+  .date-label { font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+  .header-actions { display:flex; align-items:center; gap:8px; }
+  .icon-btn { background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-size:1rem; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s; -webkit-tap-highlight-color:transparent; }
+  .icon-btn:active { background:var(--border); color:var(--text); }
+  .icon-btn.active { border-color:var(--accent); color:var(--accent); }
+  .reset-btn { background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:0.1em; padding:6px 10px; cursor:pointer; text-transform:uppercase; transition:all 0.15s; height:34px; }
+  .reset-btn:active { background:var(--border); color:var(--text); }
+  .progress-wrap { display:flex; align-items:center; gap:10px; }
+  .progress-bar-bg { flex:1; height:4px; background:var(--border); border-radius:99px; overflow:hidden; }
+  .progress-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--green)); transition:width 0.4s cubic-bezier(0.4,0,0.2,1); width:0%; }
+  .progress-count { font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--muted); white-space:nowrap; min-width:44px; text-align:right; }
 
-  body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+  .scroll-content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 16px 32px; }
+  .section-label { font-family:'JetBrains Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin:20px 4px 8px; }
+  .section-label:first-child { margin-top:4px; }
 
-  /* ── HEADER ── */
-  .app-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(8,9,11,0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 14px 20px 12px;
-    border-bottom: 1px solid var(--border);
-  }
+  .check-item { display:flex; align-items:flex-start; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:8px; cursor:pointer; transition:opacity 0.2s,border-color 0.2s,background 0.2s; -webkit-user-select:none; user-select:none; position:relative; overflow:hidden; }
+  .check-item:active { transform:scale(0.985); }
+  .check-item.done { opacity:0.45; }
+  .check-item.done .item-title { text-decoration:line-through; text-decoration-color:var(--muted); }
+  .check-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:14px 0 0 14px; background:var(--item-color,var(--muted)); opacity:0; transition:opacity 0.2s; }
+  .check-item:not(.done)::before { opacity:1; }
+  .checkbox { width:22px; height:22px; border-radius:50%; border:2px solid var(--item-color,var(--muted)); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:background 0.2s,border-color 0.2s; }
+  .check-item.done .checkbox { background:var(--item-color,var(--muted)); border-color:var(--item-color,var(--muted)); }
+  .checkmark { opacity:0; transform:scale(0); transition:opacity 0.15s,transform 0.15s cubic-bezier(0.34,1.56,0.64,1); font-size:0.7rem; }
+  .check-item.done .checkmark { opacity:1; transform:scale(1); }
+  .item-body { flex:1; min-width:0; }
+  .item-header { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+  .item-icon { font-size:0.95rem; line-height:1; }
+  .item-title { font-size:0.88rem; font-weight:600; color:var(--text); line-height:1.2; }
+  .item-time { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--muted); white-space:nowrap; padding-left:6px; }
+  .item-sub { font-size:0.72rem; color:var(--muted); line-height:1.5; margin-top:2px; }
 
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
+  .complete-banner { display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:48px 24px; gap:12px; }
+  .complete-banner.visible { display:flex; }
+  .complete-emoji { font-size:3.5rem; margin-bottom:4px; }
+  .complete-title { font-family:'Bebas Neue',sans-serif; font-size:2.8rem; letter-spacing:0.05em; color:var(--green); line-height:1; }
+  .complete-sub { font-size:0.85rem; color:var(--muted); max-width:260px; line-height:1.5; }
 
-  .app-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.6rem;
-    letter-spacing: 0.05em;
-    line-height: 1;
-  }
+  .work-block { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; align-items:center; gap:12px; margin-top:8px; }
+  .work-time { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--muted); line-height:1; white-space:nowrap; }
+  .work-label { font-size:0.82rem; font-weight:600; color:var(--muted); }
+  .work-sub { font-size:0.7rem; color:var(--dimmed); }
 
-  .app-title span { color: var(--accent); }
+  .sleep-bar { display:flex; gap:8px; margin-bottom:4px; }
+  .sleep-card { flex:1; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; text-align:center; }
+  .sleep-label { font-family:'JetBrains Mono',monospace; font-size:0.58rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+  .sleep-time { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; line-height:1; }
+  .sleep-note { font-size:0.65rem; color:var(--muted); margin-top:2px; }
 
-  .date-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
+  .confetti-wrap { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:999; display:none; }
+  .confetti-wrap.active { display:block; }
+  @keyframes fall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+  .cp { position:absolute; width:8px; height:8px; border-radius:2px; animation:fall linear forwards; }
 
-  .reset-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--muted);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    padding: 6px 10px;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.15s;
-  }
+  /* DRAWER */
+  .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+  .drawer-overlay.open { opacity:1; pointer-events:all; }
+  .drawer { position:fixed; bottom:0; left:0; right:0; z-index:201; background:#0f1114; border-top:1px solid var(--border); border-radius:20px 20px 0 0; padding:0 20px calc(32px + env(safe-area-inset-bottom)); transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); max-height:80vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .drawer.open { transform:translateY(0); }
+  .drawer-handle { width:36px; height:4px; background:var(--border); border-radius:99px; margin:12px auto 20px; }
+  .drawer-title { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:0.05em; margin-bottom:4px; }
+  .drawer-subtitle { font-size:0.72rem; color:var(--muted); margin-bottom:20px; }
 
-  .reset-btn:active { background: var(--border); color: var(--text); }
+  .streak-row { display:flex; gap:10px; margin-bottom:20px; }
+  .streak-card { flex:1; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 12px; text-align:center; }
+  .streak-num { font-family:'Bebas Neue',sans-serif; font-size:2.4rem; line-height:1; margin-bottom:2px; }
+  .streak-label { font-family:'JetBrains Mono',monospace; font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+  .streak-sub { font-size:0.65rem; color:var(--muted); margin-top:3px; }
 
-  /* Progress bar */
-  .progress-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .progress-bar-bg {
-    flex: 1;
-    height: 4px;
-    background: var(--border);
-    border-radius: 99px;
-    overflow: hidden;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    border-radius: 99px;
-    background: linear-gradient(90deg, var(--accent), var(--green));
-    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
-    width: 0%;
-  }
-
-  .progress-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--muted);
-    white-space: nowrap;
-    min-width: 44px;
-    text-align: right;
-  }
-
-  /* ── SCROLL CONTENT ── */
-  .scroll-content {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px 16px 32px;
-  }
-
-  /* ── SECTION LABELS ── */
-  .section-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin: 20px 4px 8px;
-  }
-
-  .section-label:first-child { margin-top: 4px; }
-
-  /* ── CHECKLIST ITEMS ── */
-  .check-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: opacity 0.2s, border-color 0.2s, background 0.2s;
-    -webkit-user-select: none;
-    user-select: none;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .check-item:active {
-    transform: scale(0.985);
-  }
-
-  .check-item.done {
-    opacity: 0.45;
-  }
-
-  .check-item.done .item-title {
-    text-decoration: line-through;
-    text-decoration-color: var(--muted);
-  }
-
-  /* Color accent strip on left */
-  .check-item::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    border-radius: 14px 0 0 14px;
-    background: var(--item-color, var(--muted));
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .check-item:not(.done)::before { opacity: 1; }
-
-  /* Checkbox */
-  .checkbox {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2px solid var(--item-color, var(--muted));
-    flex-shrink: 0;
-    margin-top: 1px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s, border-color 0.2s;
-  }
-
-  .check-item.done .checkbox {
-    background: var(--item-color, var(--muted));
-    border-color: var(--item-color, var(--muted));
-  }
-
-  .checkmark {
-    opacity: 0;
-    transform: scale(0);
-    transition: opacity 0.15s, transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
-    font-size: 0.7rem;
-  }
-
-  .check-item.done .checkmark {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  /* Item body */
-  .item-body { flex: 1; min-width: 0; }
-
-  .item-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 3px;
-  }
-
-  .item-icon { font-size: 0.95rem; line-height: 1; }
-
-  .item-title {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--text);
-    line-height: 1.2;
-  }
-
-  .item-time {
-    margin-left: auto;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--muted);
-    white-space: nowrap;
-    padding-left: 6px;
-  }
-
-  .item-sub {
-    font-size: 0.72rem;
-    color: var(--muted);
-    line-height: 1.5;
-    margin-top: 2px;
-  }
-
-  /* ── COMPLETION SCREEN ── */
-  .complete-banner {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 48px 24px;
-    gap: 12px;
-  }
-
-  .complete-banner.visible { display: flex; }
-
-  .complete-emoji { font-size: 3.5rem; margin-bottom: 4px; }
-
-  .complete-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.8rem;
-    letter-spacing: 0.05em;
-    color: var(--green);
-    line-height: 1;
-  }
-
-  .complete-sub {
-    font-size: 0.85rem;
-    color: var(--muted);
-    max-width: 260px;
-    line-height: 1.5;
-  }
-
-  /* ── WORK BLOCK ── */
-  .work-block {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 8px;
-  }
-
-  .work-time {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    color: var(--muted);
-    line-height: 1;
-    white-space: nowrap;
-  }
-
-  .work-label { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
-  .work-sub   { font-size: 0.7rem; color: var(--dimmed); }
-
-  /* ── SLEEP BAR ── */
-  .sleep-bar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-
-  .sleep-card {
-    flex: 1;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px;
-    text-align: center;
-  }
-
-  .sleep-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.58rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-
-  .sleep-time {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    line-height: 1;
-  }
-
-  .sleep-note { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
-
-  /* Confetti particle */
-  .confetti-wrap {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none;
-    z-index: 999;
-    display: none;
-  }
-
-  .confetti-wrap.active { display: block; }
-
-  @keyframes fall {
-    0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-  }
-
-  .cp {
-    position: absolute;
-    width: 8px; height: 8px;
-    border-radius: 2px;
-    animation: fall linear forwards;
-  }
+  .history-label { font-family:'JetBrains Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .history-day { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:8px; overflow:hidden; }
+  .history-day-header { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .history-day-name { font-size:0.82rem; font-weight:600; }
+  .history-day-count { font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--muted); }
+  .history-perfect { font-size:0.7rem; color:var(--green); font-weight:600; }
+  .history-mini-bar { flex:1; height:4px; background:var(--border); border-radius:99px; overflow:hidden; max-width:80px; }
+  .history-mini-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--green)); }
+  .history-chevron { font-size:0.7rem; color:var(--muted); transition:transform 0.2s; margin-left:8px; }
+  .history-day.expanded .history-chevron { transform:rotate(180deg); }
+  .history-items { display:none; padding:0 14px 12px; gap:4px; flex-direction:column; }
+  .history-day.expanded .history-items { display:flex; }
+  .history-item { display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--muted); padding:3px 0; }
+  .history-item.did { color:var(--text); }
+  .history-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; background:var(--border); }
+  .history-item.did .history-dot { background:var(--green); }
+  .no-history { text-align:center; padding:24px; color:var(--muted); font-size:0.8rem; line-height:1.6; }
 </style>
 </head>
 <body>
 
 <div class="confetti-wrap" id="confetti"></div>
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
-<!-- Header -->
+<div class="drawer" id="statsDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">Your Stats</div>
+  <div class="drawer-subtitle">Streaks and last 3 days of activity</div>
+  <div class="streak-row">
+    <div class="streak-card">
+      <div class="streak-num" id="useStreakNum" style="color:var(--accent)">0</div>
+      <div class="streak-label">Day Streak</div>
+      <div class="streak-sub">App opened</div>
+    </div>
+    <div class="streak-card">
+      <div class="streak-num" id="perfectStreakNum" style="color:var(--gold)">0</div>
+      <div class="streak-label">Perfect Streak</div>
+      <div class="streak-sub">100% complete</div>
+    </div>
+  </div>
+  <div class="history-label">Last 3 Days</div>
+  <div id="historyRoot"></div>
+</div>
+
 <div class="app-header">
   <div class="header-top">
     <div>
       <div class="app-title">MORNING <span>MACHINE</span></div>
       <div class="date-label" id="dateLabel"></div>
     </div>
-    <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+    <div class="header-actions">
+      <button class="icon-btn" id="statsBtn" onclick="openDrawer()">📊</button>
+      <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+    </div>
   </div>
   <div class="progress-wrap">
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="progressFill"></div>
-    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
     <div class="progress-count" id="progressCount">0 / 0</div>
   </div>
 </div>
 
-<!-- Content -->
-<div class="scroll-content" id="scrollContent">
-
-  <!-- Sleep stats -->
+<div class="scroll-content">
   <div class="section-label">Tonight's Target</div>
   <div class="sleep-bar">
     <div class="sleep-card">
@@ -407,18 +167,12 @@
       <div class="sleep-note">AM · 7.5 hrs</div>
     </div>
   </div>
-
-  <!-- Checklist sections built by JS -->
   <div id="checklistRoot"></div>
-
-  <!-- Completion -->
   <div class="complete-banner" id="completeBanner">
     <div class="complete-emoji">🔥</div>
     <div class="complete-title">LOCKED IN</div>
     <div class="complete-sub">Every block done. You're walking into work already ahead. Go be a machine.</div>
   </div>
-
-  <!-- Work -->
   <div class="section-label">On The Clock</div>
   <div class="work-block">
     <div class="work-time">1–9 PM</div>
@@ -427,100 +181,168 @@
       <div class="work-sub">Bring the energy you built this morning.</div>
     </div>
   </div>
-
 </div>
 
 <script>
-const STORAGE_KEY = 'morning_machine_v2';
+const STORAGE_KEY = 'morning_machine_v3';
+const HISTORY_KEY = 'morning_machine_history';
 
 const SECTIONS = [
-  {
-    label: '8:00 AM — Rise & Fuel',
-    items: [
-      { id:'water',     icon:'💧', title:'Drink 16oz water',           sub:'First thing — before coffee',         time:'8:00', color:'#f97316' },
-      { id:'breakfast', icon:'🍳', title:'Make breakfast & coffee',     sub:'Eggs, fruit, or oats. No phone scroll', time:'8:05', color:'#f97316' },
-    ]
-  },
-  {
-    label: '8:30 AM — Hygiene Protocol',
-    items: [
-      { id:'brush',     icon:'🦷', title:'Brush, floss & tongue scrape', sub:'2 min brush — non-negotiable',        time:'8:30', color:'#ff4d6d' },
-      { id:'skincare',  icon:'💧', title:'Morning skincare',             sub:'Cleanser → moisturizer → SPF',        time:'8:35', color:'#ff4d6d' },
-      { id:'groom',     icon:'✂️', title:'Grooming check',              sub:'Deodorant, nails, hair, edges',       time:'8:42', color:'#ff4d6d' },
-    ]
-  },
-  {
-    label: '8:50 AM — Stretch & Spirit',
-    items: [
-      { id:'stretch',   icon:'🧘', title:'Light stretching',            sub:'Hips, hamstrings, thoracic spine',    time:'8:50', color:'#a855f7' },
-      { id:'breathe',   icon:'🌬️', title:'Breathing (3 min)',          sub:'Box breath or 4-7-8 pattern',         time:'9:05', color:'#a855f7' },
-      { id:'intention', icon:'🎯', title:'Set your intention',          sub:'One thing you want from today — say it out loud', time:'9:08', color:'#a855f7' },
-    ]
-  },
-  {
-    label: '9:10 AM — Workout',
-    items: [
-      { id:'warmup',    icon:'🔥', title:'Warm-up (5 min)',             sub:'Get the blood moving before lifting', time:'9:10', color:'#39d98a' },
-      { id:'workout',   icon:'🏋️', title:'Main workout (45 min)',      sub:'Push / pull / legs — log your sets',  time:'9:15', color:'#39d98a' },
-    ]
-  },
-  {
-    label: '10:00 AM — Shower & Get Right',
-    items: [
-      { id:'shower',    icon:'🚿', title:'Shower',                      sub:'Cold 30-sec finish for recovery',     time:'10:00', color:'#ff4d6d' },
-      { id:'lotion',    icon:'🧴', title:'Post-shower routine',         sub:'Lotion, cologne, get dressed clean',  time:'10:12', color:'#ff4d6d' },
-    ]
-  },
-  {
-    label: '10:20 AM — CCNA Study',
-    items: [
-      { id:'study1',    icon:'📡', title:'New material (45 min)',        sub:'OCG chapter or Packet Tracer lab',    time:'10:20', color:'#00e5ff' },
-      { id:'study2',    icon:'🃏', title:'Anki review (45 min)',         sub:'Flashcard review + practice Qs',      time:'11:05', color:'#00e5ff' },
-    ]
-  },
-  {
-    label: '11:50 AM — Rocket League',
-    items: [
-      { id:'rl',        icon:'🚀', title:'Rocket League (40 min)',       sub:'Ranked or training packs — hard stop 12:30', time:'11:50', color:'#f5c518' },
-    ]
-  },
-  {
-    label: '12:30 PM — Pre-Work',
-    items: [
-      { id:'meal',      icon:'🍱', title:'Pre-work meal',               sub:'Protein + carbs + something green',   time:'12:30', color:'#f97316' },
-      { id:'pack',      icon:'🎒', title:'Pack up & clock in mentally', sub:'Bag, keys, calendar check. Leave by 12:55', time:'12:45', color:'#f97316' },
-    ]
-  },
+  { label:'8:00 AM — Rise & Fuel', items:[
+    { id:'water',     icon:'💧', title:'Drink 16oz water',            sub:'First thing — before coffee',                     time:'8:00', color:'#f97316' },
+    { id:'breakfast', icon:'🍳', title:'Make breakfast & coffee',      sub:'Eggs, fruit, or oats. No phone scroll',           time:'8:05', color:'#f97316' },
+  ]},
+  { label:'8:30 AM — Hygiene Protocol', items:[
+    { id:'brush',     icon:'🦷', title:'Brush, floss & tongue scrape', sub:'2 min brush — non-negotiable',                    time:'8:30', color:'#ff4d6d' },
+    { id:'skincare',  icon:'💧', title:'Morning skincare',              sub:'Cleanser → moisturizer → SPF',                    time:'8:35', color:'#ff4d6d' },
+    { id:'groom',     icon:'✂️', title:'Grooming check',               sub:'Deodorant, nails, hair, edges',                   time:'8:42', color:'#ff4d6d' },
+  ]},
+  { label:'8:50 AM — Stretch & Spirit', items:[
+    { id:'stretch',   icon:'🧘', title:'Light stretching',             sub:'Hips, hamstrings, thoracic spine',                time:'8:50', color:'#a855f7' },
+    { id:'breathe',   icon:'🌬️', title:'Breathing (3 min)',           sub:'Box breath or 4-7-8 pattern',                     time:'9:05', color:'#a855f7' },
+    { id:'intention', icon:'🎯', title:'Set your intention',           sub:'One thing you want from today — say it out loud',  time:'9:08', color:'#a855f7' },
+  ]},
+  { label:'9:10 AM — Workout', items:[
+    { id:'warmup',    icon:'🔥', title:'Warm-up (5 min)',              sub:'Get the blood moving before lifting',              time:'9:10', color:'#39d98a' },
+    { id:'workout',   icon:'🏋️', title:'Main workout (45 min)',       sub:'Push / pull / legs — log your sets',               time:'9:15', color:'#39d98a' },
+  ]},
+  { label:'10:00 AM — Shower & Get Right', items:[
+    { id:'shower',    icon:'🚿', title:'Shower',                       sub:'Cold 30-sec finish for recovery',                  time:'10:00', color:'#ff4d6d' },
+    { id:'lotion',    icon:'🧴', title:'Post-shower routine',          sub:'Lotion, cologne, get dressed clean',               time:'10:12', color:'#ff4d6d' },
+  ]},
+  { label:'10:20 AM — CCNA Study', items:[
+    { id:'study1',    icon:'📡', title:'New material (45 min)',         sub:'OCG chapter or Packet Tracer lab',                time:'10:20', color:'#00e5ff' },
+    { id:'study2',    icon:'🃏', title:'Anki review (45 min)',          sub:'Flashcard review + practice Qs',                  time:'11:05', color:'#00e5ff' },
+  ]},
+  { label:'11:50 AM — Rocket League', items:[
+    { id:'rl',        icon:'🚀', title:'Rocket League (40 min)',        sub:'Ranked or training packs — hard stop 12:30',      time:'11:50', color:'#f5c518' },
+  ]},
+  { label:'12:30 PM — Pre-Work', items:[
+    { id:'meal',      icon:'🍱', title:'Pre-work meal',                sub:'Protein + carbs + something green',                time:'12:30', color:'#f97316' },
+    { id:'pack',      icon:'🎒', title:'Pack up & clock in mentally',  sub:'Bag, keys, calendar check. Leave by 12:55',        time:'12:45', color:'#f97316' },
+  ]},
 ];
 
-// Flatten all items for total count
 const ALL_ITEMS = SECTIONS.flatMap(s => s.items);
 const TOTAL = ALL_ITEMS.length;
+let state = {}, history = {};
 
-// State
-let state = {};
-
-function loadState() {
+function loadAll() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    // Reset if it's a new day
     const today = new Date().toDateString();
     if (saved.date !== today) {
+      if (saved.date) archiveDay(saved.date, saved);
       state = { date: today };
     } else {
       state = saved;
     }
-  } catch(e) {
-    state = { date: new Date().toDateString() };
-  }
+  } catch(e) { state = { date: new Date().toDateString() }; }
+  try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}'); }
+  catch(e) { history = {}; }
+  recordOpen(new Date().toDateString());
 }
 
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveHistory() { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }
+
+function archiveDay(dateStr, dayState) {
+  const items = {};
+  ALL_ITEMS.forEach(i => { items[i.id] = !!dayState[i.id]; });
+  const done = Object.values(items).filter(Boolean).length;
+  history[dateStr] = { items, done, total:TOTAL, perfect: done === TOTAL, opened:true };
+  const keys = Object.keys(history).sort((a,b) => new Date(b)-new Date(a));
+  if (keys.length > 30) keys.slice(30).forEach(k => delete history[k]);
+  saveHistory();
+}
+
+function recordOpen(dateStr) {
+  if (!history[dateStr]) history[dateStr] = { items:{}, done:0, total:TOTAL, perfect:false, opened:true };
+  else history[dateStr].opened = true;
+  saveHistory();
+}
+
+function calcStreaks() {
+  const today = new Date().toDateString();
+  let useStreak = history[today]?.opened ? 1 : 0;
+  let d = new Date(); d.setDate(d.getDate()-1);
+  while (history[d.toDateString()]?.opened) { useStreak++; d.setDate(d.getDate()-1); }
+
+  const todayDone = ALL_ITEMS.filter(i => state[i.id]).length;
+  let perfectStreak = todayDone === TOTAL ? 1 : 0;
+  let pd = new Date(); pd.setDate(pd.getDate() - (todayDone === TOTAL ? 1 : 0));
+  if (todayDone !== TOTAL) pd.setDate(pd.getDate()-1);
+  while (history[pd.toDateString()]?.perfect) { perfectStreak++; pd.setDate(pd.getDate()-1); }
+
+  return { useStreak, perfectStreak };
+}
+
+function openDrawer() {
+  renderDrawer();
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('statsDrawer').classList.add('open');
+  document.getElementById('statsBtn').classList.add('active');
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('statsDrawer').classList.remove('open');
+  document.getElementById('statsBtn').classList.remove('active');
+}
+
+function renderDrawer() {
+  const { useStreak, perfectStreak } = calcStreaks();
+  document.getElementById('useStreakNum').textContent = useStreak;
+  document.getElementById('perfectStreakNum').textContent = perfectStreak;
+  const root = document.getElementById('historyRoot');
+  root.innerHTML = '';
+  const today = new Date().toDateString();
+  const pastDays = Object.keys(history)
+    .filter(d => d !== today && history[d].opened)
+    .sort((a,b) => new Date(b)-new Date(a))
+    .slice(0,3);
+  if (!pastDays.length) {
+    root.innerHTML = '<div class="no-history">No history yet.<br>Come back tomorrow after your first full day.</div>';
+    return;
+  }
+  pastDays.forEach(dateStr => {
+    const rec = history[dateStr];
+    const done = rec.done || 0;
+    const pct = Math.round((done/TOTAL)*100);
+    const d = new Date(dateStr);
+    const dayName = d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+    const el = document.createElement('div');
+    el.className = 'history-day';
+    el.innerHTML = `
+      <div class="history-day-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <div>
+          <div class="history-day-name">${dayName}</div>
+          <div class="history-day-count">${done} / ${TOTAL} tasks</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          ${rec.perfect
+            ? '<span class="history-perfect">PERFECT ✓</span>'
+            : `<div class="history-mini-bar"><div class="history-mini-fill" style="width:${pct}%"></div></div>
+               <span style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--muted)">${pct}%</span>`
+          }
+          <span class="history-chevron">▼</span>
+        </div>
+      </div>
+      <div class="history-items">
+        ${ALL_ITEMS.map(item => `
+          <div class="history-item ${rec.items?.[item.id] ? 'did' : ''}">
+            <div class="history-dot"></div>
+            <span>${item.icon} ${item.title}</span>
+          </div>`).join('')}
+      </div>`;
+    root.appendChild(el);
+  });
 }
 
 function resetAll() {
+  if (state.date) archiveDay(state.date, state);
   state = { date: new Date().toDateString() };
+  recordOpen(state.date);
   saveState();
   render();
 }
@@ -528,83 +350,61 @@ function resetAll() {
 function toggle(id) {
   state[id] = !state[id];
   saveState();
-  updateItem(id);
-  updateProgress();
-  checkComplete();
+  const done = ALL_ITEMS.filter(i => state[i.id]).length;
+  if (done === TOTAL) {
+    const items = {}; ALL_ITEMS.forEach(i => { items[i.id] = !!state[i.id]; });
+    history[state.date] = { items, done:TOTAL, total:TOTAL, perfect:true, opened:true };
+    saveHistory();
+  }
+  updateItem(id); updateProgress(); checkComplete();
 }
 
 function updateItem(id) {
-  const el = document.getElementById('item_' + id);
+  const el = document.getElementById('item_'+id);
   if (!el) return;
-  if (state[id]) {
-    el.classList.add('done');
-  } else {
-    el.classList.remove('done');
-  }
+  state[id] ? el.classList.add('done') : el.classList.remove('done');
 }
 
 function updateProgress() {
   const done = ALL_ITEMS.filter(i => state[i.id]).length;
-  const pct = TOTAL > 0 ? (done / TOTAL * 100) : 0;
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressCount').textContent = done + ' / ' + TOTAL;
-
-  // Show/hide completion banner
-  const banner = document.getElementById('completeBanner');
-  if (done === TOTAL) {
-    banner.classList.add('visible');
-  } else {
-    banner.classList.remove('visible');
-  }
+  document.getElementById('progressFill').style.width = (TOTAL>0?(done/TOTAL*100):0)+'%';
+  document.getElementById('progressCount').textContent = done+' / '+TOTAL;
+  const b = document.getElementById('completeBanner');
+  done===TOTAL ? b.classList.add('visible') : b.classList.remove('visible');
 }
 
 function checkComplete() {
-  const done = ALL_ITEMS.filter(i => state[i.id]).length;
-  if (done === TOTAL) {
-    launchConfetti();
-  }
+  if (ALL_ITEMS.filter(i=>state[i.id]).length===TOTAL) launchConfetti();
 }
 
 function launchConfetti() {
   const wrap = document.getElementById('confetti');
-  wrap.innerHTML = '';
-  wrap.classList.add('active');
-  const colors = ['#00e5ff','#f5c518','#39d98a','#a855f7','#ff4d6d','#f97316'];
-  for (let i = 0; i < 60; i++) {
-    const p = document.createElement('div');
-    p.className = 'cp';
-    p.style.left = Math.random() * 100 + 'vw';
-    p.style.top = '-10px';
-    p.style.background = colors[Math.floor(Math.random() * colors.length)];
-    p.style.animationDuration = (1.2 + Math.random() * 1.5) + 's';
-    p.style.animationDelay = (Math.random() * 0.8) + 's';
-    p.style.width = p.style.height = (6 + Math.random() * 6) + 'px';
+  wrap.innerHTML=''; wrap.classList.add('active');
+  const colors=['#00e5ff','#f5c518','#39d98a','#a855f7','#ff4d6d','#f97316'];
+  for(let i=0;i<60;i++){
+    const p=document.createElement('div'); p.className='cp';
+    p.style.left=Math.random()*100+'vw'; p.style.top='-10px';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration=(1.2+Math.random()*1.5)+'s';
+    p.style.animationDelay=(Math.random()*0.8)+'s';
+    p.style.width=p.style.height=(6+Math.random()*6)+'px';
     wrap.appendChild(p);
   }
-  setTimeout(() => { wrap.classList.remove('active'); wrap.innerHTML = ''; }, 3000);
+  setTimeout(()=>{ wrap.classList.remove('active'); wrap.innerHTML=''; },3000);
 }
 
 function buildChecklist() {
-  const root = document.getElementById('checklistRoot');
-  root.innerHTML = '';
-
+  const root = document.getElementById('checklistRoot'); root.innerHTML='';
   SECTIONS.forEach(section => {
-    const labelEl = document.createElement('div');
-    labelEl.className = 'section-label';
-    labelEl.textContent = section.label;
-    root.appendChild(labelEl);
-
+    const lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent=section.label; root.appendChild(lbl);
     section.items.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'check-item' + (state[item.id] ? ' done' : '');
-      el.id = 'item_' + item.id;
-      el.style.setProperty('--item-color', item.color);
-      el.onclick = () => toggle(item.id);
-
-      el.innerHTML = `
-        <div class="checkbox">
-          <span class="checkmark">✓</span>
-        </div>
+      const el=document.createElement('div');
+      el.className='check-item'+(state[item.id]?' done':'');
+      el.id='item_'+item.id;
+      el.style.setProperty('--item-color',item.color);
+      el.onclick=()=>toggle(item.id);
+      el.innerHTML=`
+        <div class="checkbox"><span class="checkmark">✓</span></div>
         <div class="item-body">
           <div class="item-header">
             <span class="item-icon">${item.icon}</span>
@@ -612,39 +412,24 @@ function buildChecklist() {
             <span class="item-time">${item.time}</span>
           </div>
           <div class="item-sub">${item.sub}</div>
-        </div>
-      `;
+        </div>`;
       root.appendChild(el);
     });
   });
 }
 
 function setDateLabel() {
-  const d = new Date();
-  const opts = { weekday: 'long', month: 'long', day: 'numeric' };
-  document.getElementById('dateLabel').textContent = d.toLocaleDateString('en-US', opts).toUpperCase();
+  document.getElementById('dateLabel').textContent =
+    new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
 }
 
-function render() {
-  buildChecklist();
-  updateProgress();
-}
+function render() { buildChecklist(); updateProgress(); }
 
-// Init
-loadState();
-setDateLabel();
-render();
+loadAll(); setDateLabel(); render();
 
-// Auto-reset at midnight
 function scheduleReset() {
-  const now = new Date();
-  const midnight = new Date(now);
-  midnight.setHours(24, 0, 0, 0);
-  const ms = midnight - now;
-  setTimeout(() => {
-    resetAll();
-    scheduleReset();
-  }, ms);
+  const now=new Date(), midnight=new Date(now); midnight.setHours(24,0,0,0);
+  setTimeout(()=>{ resetAll(); scheduleReset(); }, midnight-now);
 }
 scheduleReset();
 </script>
