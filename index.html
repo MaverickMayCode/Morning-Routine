@@ -55,6 +55,30 @@
   .item-time { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--muted); white-space:nowrap; padding-left:6px; }
   .item-sub { font-size:0.72rem; color:var(--muted); line-height:1.5; margin-top:2px; }
 
+  /* CCNA CARD */
+  .ccna-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:8px; position:relative; overflow:hidden; }
+  .ccna-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); }
+  .ccna-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+  .ccna-title-wrap { display:flex; align-items:baseline; gap:8px; }
+  .ccna-title { font-size:0.88rem; font-weight:700; color:var(--text); }
+  .ccna-day { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--accent); }
+  .ccna-edit { background:none; border:none; color:var(--muted); font-size:0.85rem; cursor:pointer; padding:4px; }
+  .ccna-badge { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:0.6rem; letter-spacing:0.05em; padding:2px 8px; border-radius:99px; margin-top:6px; margin-bottom:10px; }
+  .ccna-badge.behind { background:rgba(255,77,109,0.15); color:var(--red); }
+  .ccna-badge.ahead { background:rgba(57,217,138,0.15); color:var(--green); }
+  .ccna-badge.pace { background:rgba(90,98,112,0.15); color:var(--muted); }
+  .ccna-sub { display:flex; align-items:center; gap:10px; padding:8px 0; cursor:pointer; -webkit-user-select:none; user-select:none; }
+  .ccna-sub-checkbox { width:19px; height:19px; border-radius:6px; border:2px solid var(--accent); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
+  .ccna-sub.done .ccna-sub-checkbox { background:var(--accent); }
+  .ccna-sub-check { opacity:0; transform:scale(0); transition:opacity 0.15s,transform 0.15s cubic-bezier(0.34,1.56,0.64,1); font-size:0.6rem; color:#08090b; }
+  .ccna-sub.done .ccna-sub-check { opacity:1; transform:scale(1); }
+  .ccna-sub-title { font-size:0.82rem; font-weight:500; }
+  .ccna-sub.done .ccna-sub-title { text-decoration:line-through; color:var(--muted); }
+  .ccna-advanced { font-size:0.72rem; color:var(--green); font-weight:600; margin-top:6px; display:none; }
+  .ccna-advanced.show { display:block; }
+  .ccna-finished { text-align:center; padding:4px 0; }
+  .ccna-finished-title { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:var(--gold); letter-spacing:0.05em; }
+
   .complete-banner { display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:48px 24px; gap:12px; }
   .complete-banner.visible { display:flex; }
   .complete-emoji { font-size:3.5rem; margin-bottom:4px; }
@@ -109,6 +133,8 @@
   .history-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; background:var(--border); }
   .history-item.did .history-dot { background:var(--green); }
   .no-history { text-align:center; padding:24px; color:var(--muted); font-size:0.8rem; line-height:1.6; }
+
+  .ccna-stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 12px; text-align:center; margin-bottom:20px; }
 </style>
 </head>
 <body>
@@ -119,7 +145,7 @@
 <div class="drawer" id="statsDrawer">
   <div class="drawer-handle"></div>
   <div class="drawer-title">Your Stats</div>
-  <div class="drawer-subtitle">Streaks and last 3 days of activity</div>
+  <div class="drawer-subtitle">Streaks, CCNA pace, and last 3 days</div>
   <div class="streak-row">
     <div class="streak-card">
       <div class="streak-num" id="useStreakNum" style="color:var(--accent)">0</div>
@@ -132,6 +158,7 @@
       <div class="streak-sub">100% complete</div>
     </div>
   </div>
+  <div class="ccna-stat-card" id="ccnaStatCard"></div>
   <div class="history-label">Last 3 Days</div>
   <div id="historyRoot"></div>
 </div>
@@ -163,16 +190,23 @@
     </div>
     <div class="sleep-card">
       <div class="sleep-label">Wake Up</div>
-      <div class="sleep-time" style="color:var(--gold)">8:00</div>
-      <div class="sleep-note">AM · 7.5 hrs</div>
+      <div class="sleep-time" style="color:var(--gold)">9:30</div>
+      <div class="sleep-note">AM</div>
     </div>
   </div>
+
+  <div class="section-label">The Non-Negotiables</div>
   <div id="checklistRoot"></div>
+
+  <div class="section-label">CCNA</div>
+  <div id="ccnaRoot"></div>
+
   <div class="complete-banner" id="completeBanner">
     <div class="complete-emoji">🔥</div>
     <div class="complete-title">LOCKED IN</div>
     <div class="complete-sub">Every block done. You're walking into work already ahead. Go be a machine.</div>
   </div>
+
   <div class="section-label">On The Clock</div>
   <div class="work-block">
     <div class="work-time">1–9 PM</div>
@@ -186,47 +220,24 @@
 <script>
 const STORAGE_KEY = 'morning_machine_v3';
 const HISTORY_KEY = 'morning_machine_history';
+const CCNA_KEY = 'morning_machine_ccna';
+const CCNA_TOTAL_DAYS = 54;
 
-const SECTIONS = [
-  { label:'8:00 AM — Rise & Fuel', items:[
-    { id:'water',     icon:'💧', title:'Drink 16oz water',            sub:'First thing — before coffee',                     time:'8:00', color:'#f97316' },
-    { id:'breakfast', icon:'🍳', title:'Make breakfast & coffee',      sub:'Eggs, fruit, or oats. No phone scroll',           time:'8:05', color:'#f97316' },
-  ]},
-  { label:'8:30 AM — Hygiene Protocol', items:[
-    { id:'brush',     icon:'🦷', title:'Brush, floss & tongue scrape', sub:'2 min brush — non-negotiable',                    time:'8:30', color:'#ff4d6d' },
-    { id:'skincare',  icon:'💧', title:'Morning skincare',              sub:'Cleanser → moisturizer → SPF',                    time:'8:35', color:'#ff4d6d' },
-    { id:'groom',     icon:'✂️', title:'Grooming check',               sub:'Deodorant, nails, hair, edges',                   time:'8:42', color:'#ff4d6d' },
-  ]},
-  { label:'8:50 AM — Stretch & Spirit', items:[
-    { id:'stretch',   icon:'🧘', title:'Light stretching',             sub:'Hips, hamstrings, thoracic spine',                time:'8:50', color:'#a855f7' },
-    { id:'breathe',   icon:'🌬️', title:'Breathing (3 min)',           sub:'Box breath or 4-7-8 pattern',                     time:'9:05', color:'#a855f7' },
-    { id:'intention', icon:'🎯', title:'Set your intention',           sub:'One thing you want from today — say it out loud',  time:'9:08', color:'#a855f7' },
-  ]},
-  { label:'9:10 AM — Workout', items:[
-    { id:'warmup',    icon:'🔥', title:'Warm-up (5 min)',              sub:'Get the blood moving before lifting',              time:'9:10', color:'#39d98a' },
-    { id:'workout',   icon:'🏋️', title:'Main workout (45 min)',       sub:'Push / pull / legs — log your sets',               time:'9:15', color:'#39d98a' },
-  ]},
-  { label:'10:00 AM — Shower & Get Right', items:[
-    { id:'shower',    icon:'🚿', title:'Shower',                       sub:'Cold 30-sec finish for recovery',                  time:'10:00', color:'#ff4d6d' },
-    { id:'lotion',    icon:'🧴', title:'Post-shower routine',          sub:'Lotion, cologne, get dressed clean',               time:'10:12', color:'#ff4d6d' },
-  ]},
-  { label:'10:20 AM — CCNA Study', items:[
-    { id:'study1',    icon:'📡', title:'New material (45 min)',         sub:'OCG chapter or Packet Tracer lab',                time:'10:20', color:'#00e5ff' },
-    { id:'study2',    icon:'🃏', title:'Anki review (45 min)',          sub:'Flashcard review + practice Qs',                  time:'11:05', color:'#00e5ff' },
-  ]},
-  { label:'11:50 AM — Rocket League', items:[
-    { id:'rl',        icon:'🚀', title:'Rocket League (40 min)',        sub:'Ranked or training packs — hard stop 12:30',      time:'11:50', color:'#f5c518' },
-  ]},
-  { label:'12:30 PM — Pre-Work', items:[
-    { id:'meal',      icon:'🍱', title:'Pre-work meal',                sub:'Protein + carbs + something green',                time:'12:30', color:'#f97316' },
-    { id:'pack',      icon:'🎒', title:'Pack up & clock in mentally',  sub:'Bag, keys, calendar check. Leave by 12:55',        time:'12:45', color:'#f97316' },
-  ]},
+// ---- Simple daily non-negotiables (kept lean on purpose) ----
+const SIMPLE_ITEMS = [
+  { id:'wake',     icon:'⏰', title:'Up by 9:30',              sub:'No snoozing past it',                time:'9:30',  color:'#f5c518' },
+  { id:'workout',  icon:'🏋️', title:'Workout',                 sub:'Even a short one counts',            time:'10:15', color:'#39d98a' },
+  { id:'getready', icon:'🚿', title:'Shower, eat, get dressed', sub:'Ready to walk out the door by 12:45', time:'12:15', color:'#ff4d6d' },
 ];
 
-const ALL_ITEMS = SECTIONS.flatMap(s => s.items);
+// ALL_ITEMS includes a virtual 'ccna' entry so progress/streak/history logic
+// (written for the old 15-item list) keeps working unchanged.
+const ALL_ITEMS = [...SIMPLE_ITEMS, { id:'ccna', icon:'📡', title:'CCNA — Day complete' }];
 const TOTAL = ALL_ITEMS.length;
-let state = {}, history = {};
 
+let state = {}, history = {}, ccna = {};
+
+// ---------------- Daily state (resets at midnight) ----------------
 function loadAll() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -277,6 +288,142 @@ function calcStreaks() {
   return { useStreak, perfectStreak };
 }
 
+// ---------------- CCNA persistent tracker (does NOT reset nightly) ----------------
+function loadCcna() {
+  try { ccna = JSON.parse(localStorage.getItem(CCNA_KEY) || 'null'); } catch(e) { ccna = null; }
+  if (!ccna) {
+    // First-run setup
+    let dayInput = prompt('What day of CCNA content are you currently on? (1-' + CCNA_TOTAL_DAYS + ')', '10');
+    let day = parseInt(dayInput, 10);
+    if (isNaN(day) || day < 1) day = 1;
+    if (day > CCNA_TOTAL_DAYS) day = CCNA_TOTAL_DAYS;
+
+    let elapsedInput = prompt('How many days ago did you start the course (including days you skipped)?', '21');
+    let elapsed = parseInt(elapsedInput, 10);
+    if (isNaN(elapsed) || elapsed < 0) elapsed = 0;
+
+    const start = new Date();
+    start.setHours(0,0,0,0);
+    start.setDate(start.getDate() - elapsed);
+
+    ccna = {
+      currentDay: day,
+      startDate: start.toISOString(),
+      subtasks: { video:false, cards:false, lab:false },
+      completedLog: []
+    };
+    saveCcna();
+  }
+}
+
+function saveCcna() { localStorage.setItem(CCNA_KEY, JSON.stringify(ccna)); }
+
+function editCcna() {
+  let dayInput = prompt('Current CCNA day (1-' + CCNA_TOTAL_DAYS + ')', ccna.currentDay);
+  let day = parseInt(dayInput, 10);
+  if (!isNaN(day) && day >= 1 && day <= CCNA_TOTAL_DAYS) ccna.currentDay = day;
+
+  const daysSinceStart = Math.round((Date.now() - new Date(ccna.startDate).getTime()) / 86400000);
+  let elapsedInput = prompt('Days since you started the course', daysSinceStart);
+  let elapsed = parseInt(elapsedInput, 10);
+  if (!isNaN(elapsed) && elapsed >= 0) {
+    const start = new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate() - elapsed);
+    ccna.startDate = start.toISOString();
+  }
+  saveCcna();
+  renderCcna();
+}
+
+function expectedDay() {
+  const start = new Date(ccna.startDate); start.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  let d = Math.floor((today - start) / 86400000) + 1;
+  if (d < 1) d = 1;
+  if (d > CCNA_TOTAL_DAYS) d = CCNA_TOTAL_DAYS;
+  return d;
+}
+
+function toggleCcnaSub(key) {
+  ccna.subtasks[key] = !ccna.subtasks[key];
+  let justFinished = false;
+
+  if (ccna.subtasks.video && ccna.subtasks.cards && ccna.subtasks.lab) {
+    // Day complete -> log it, advance, reset subtasks
+    const todayStr = new Date().toDateString();
+    ccna.completedLog.push(todayStr);
+    if (ccna.currentDay < CCNA_TOTAL_DAYS) ccna.currentDay++;
+    ccna.subtasks = { video:false, cards:false, lab:false };
+    justFinished = true;
+
+    // mirror into daily state so streak/progress/history logic treats it like any other item
+    state.ccna = true;
+    saveState();
+  }
+
+  saveCcna();
+  renderCcna(justFinished);
+  updateProgress();
+  checkComplete();
+}
+
+function renderCcna(justFinished) {
+  const root = document.getElementById('ccnaRoot');
+  if (!root) return;
+
+  if (ccna.currentDay > CCNA_TOTAL_DAYS || (ccna.currentDay === CCNA_TOTAL_DAYS && ccna.completedLog.filter(d=>true).length >= CCNA_TOTAL_DAYS && ccna.subtasks.video && false)) {
+    // (kept simple — completion banner handled below via explicit check)
+  }
+
+  const finished = ccna.completedLog.length >= CCNA_TOTAL_DAYS;
+
+  if (finished) {
+    root.innerHTML = `
+      <div class="ccna-card">
+        <div class="ccna-finished">
+          <div class="ccna-finished-title">🎉 ALL ${CCNA_TOTAL_DAYS} DAYS COMPLETE</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">Go book the exam.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const exp = expectedDay();
+  const completedDays = ccna.currentDay - 1;
+  const behind = Math.max(0, exp - completedDays);
+  const ahead = Math.max(0, completedDays - exp);
+
+  let badgeHtml;
+  if (behind > 0) badgeHtml = `<span class="ccna-badge behind">${behind} day${behind===1?'':'s'} behind pace</span>`;
+  else if (ahead > 0) badgeHtml = `<span class="ccna-badge ahead">${ahead} day${ahead===1?'':'s'} ahead</span>`;
+  else badgeHtml = `<span class="ccna-badge pace">on pace</span>`;
+
+  const subs = [
+    { key:'video', icon:'🎥', label:'Video lesson' },
+    { key:'cards', icon:'🃏', label:'Flashcards' },
+    { key:'lab',   icon:'🔧', label:'Lab' },
+  ];
+
+  root.innerHTML = `
+    <div class="ccna-card">
+      <div class="ccna-top">
+        <div class="ccna-title-wrap">
+          <span class="ccna-title">Day</span>
+          <span class="ccna-day">${ccna.currentDay} / ${CCNA_TOTAL_DAYS}</span>
+        </div>
+        <button class="ccna-edit" onclick="editCcna()">✎</button>
+      </div>
+      <div>${badgeHtml}</div>
+      ${subs.map(s => `
+        <div class="ccna-sub ${ccna.subtasks[s.key] ? 'done' : ''}" onclick="toggleCcnaSub('${s.key}')">
+          <div class="ccna-sub-checkbox"><span class="ccna-sub-check">✓</span></div>
+          <span class="item-icon">${s.icon}</span>
+          <span class="ccna-sub-title">${s.label}</span>
+        </div>`).join('')}
+      <div class="ccna-advanced ${justFinished ? 'show' : ''}">Day ${ccna.currentDay - 1} logged — moved to Day ${ccna.currentDay} ✓</div>
+    </div>`;
+}
+
+// ---------------- Drawer ----------------
 function openDrawer() {
   renderDrawer();
   document.getElementById('drawerOverlay').classList.add('open');
@@ -294,6 +441,21 @@ function renderDrawer() {
   const { useStreak, perfectStreak } = calcStreaks();
   document.getElementById('useStreakNum').textContent = useStreak;
   document.getElementById('perfectStreakNum').textContent = perfectStreak;
+
+  const exp = expectedDay();
+  const completedDays = ccna.currentDay - 1;
+  const behind = Math.max(0, exp - completedDays);
+  const ahead = Math.max(0, completedDays - exp);
+  const statusText = behind > 0
+    ? `<span style="color:var(--red)">${behind} day${behind===1?'':'s'} behind pace</span>`
+    : ahead > 0
+      ? `<span style="color:var(--green)">${ahead} day${ahead===1?'':'s'} ahead of pace</span>`
+      : `<span style="color:var(--muted)">right on pace</span>`;
+  document.getElementById('ccnaStatCard').innerHTML = `
+    <div class="streak-num" style="color:var(--accent)">${ccna.currentDay} / ${CCNA_TOTAL_DAYS}</div>
+    <div class="streak-label">CCNA Day</div>
+    <div class="streak-sub">${statusText}</div>`;
+
   const root = document.getElementById('historyRoot');
   root.innerHTML = '';
   const today = new Date().toDateString();
@@ -308,7 +470,8 @@ function renderDrawer() {
   pastDays.forEach(dateStr => {
     const rec = history[dateStr];
     const done = rec.done || 0;
-    const pct = Math.round((done/TOTAL)*100);
+    const totalForDay = rec.total || TOTAL;
+    const pct = Math.round((done/totalForDay)*100);
     const d = new Date(dateStr);
     const dayName = d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
     const el = document.createElement('div');
@@ -317,7 +480,7 @@ function renderDrawer() {
       <div class="history-day-header" onclick="this.parentElement.classList.toggle('expanded')">
         <div>
           <div class="history-day-name">${dayName}</div>
-          <div class="history-day-count">${done} / ${TOTAL} tasks</div>
+          <div class="history-day-count">${done} / ${totalForDay} tasks</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
           ${rec.perfect
@@ -339,6 +502,7 @@ function renderDrawer() {
   });
 }
 
+// ---------------- Simple checklist ----------------
 function resetAll() {
   if (state.date) archiveDay(state.date, state);
   state = { date: new Date().toDateString() };
@@ -395,26 +559,23 @@ function launchConfetti() {
 
 function buildChecklist() {
   const root = document.getElementById('checklistRoot'); root.innerHTML='';
-  SECTIONS.forEach(section => {
-    const lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent=section.label; root.appendChild(lbl);
-    section.items.forEach(item => {
-      const el=document.createElement('div');
-      el.className='check-item'+(state[item.id]?' done':'');
-      el.id='item_'+item.id;
-      el.style.setProperty('--item-color',item.color);
-      el.onclick=()=>toggle(item.id);
-      el.innerHTML=`
-        <div class="checkbox"><span class="checkmark">✓</span></div>
-        <div class="item-body">
-          <div class="item-header">
-            <span class="item-icon">${item.icon}</span>
-            <span class="item-title">${item.title}</span>
-            <span class="item-time">${item.time}</span>
-          </div>
-          <div class="item-sub">${item.sub}</div>
-        </div>`;
-      root.appendChild(el);
-    });
+  SIMPLE_ITEMS.forEach(item => {
+    const el=document.createElement('div');
+    el.className='check-item'+(state[item.id]?' done':'');
+    el.id='item_'+item.id;
+    el.style.setProperty('--item-color',item.color);
+    el.onclick=()=>toggle(item.id);
+    el.innerHTML=`
+      <div class="checkbox"><span class="checkmark">✓</span></div>
+      <div class="item-body">
+        <div class="item-header">
+          <span class="item-icon">${item.icon}</span>
+          <span class="item-title">${item.title}</span>
+          <span class="item-time">${item.time}</span>
+        </div>
+        <div class="item-sub">${item.sub}</div>
+      </div>`;
+    root.appendChild(el);
   });
 }
 
@@ -423,9 +584,9 @@ function setDateLabel() {
     new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
 }
 
-function render() { buildChecklist(); updateProgress(); }
+function render() { buildChecklist(); renderCcna(); updateProgress(); }
 
-loadAll(); setDateLabel(); render();
+loadAll(); loadCcna(); setDateLabel(); render();
 
 function scheduleReset() {
   const now=new Date(), midnight=new Date(now); midnight.setHours(24,0,0,0);
