@@ -135,6 +135,41 @@
   .no-history { text-align:center; padding:24px; color:var(--muted); font-size:0.8rem; line-height:1.6; }
 
   .ccna-stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 12px; text-align:center; margin-bottom:20px; }
+
+  /* INFERNO TRACKER */
+  .inferno-stats-row { display:flex; gap:8px; margin-bottom:10px; }
+  .inferno-stat { flex:1; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 8px; text-align:center; }
+  .inferno-stat-num { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; line-height:1; color:var(--orange); }
+  .inferno-stat-num.cape { color:var(--gold); }
+  .inferno-stat-label { font-family:'JetBrains Mono',monospace; font-size:0.55rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-top:3px; }
+  .inferno-log-btn { width:100%; background:var(--card); border:1px dashed var(--border); border-radius:14px; padding:13px; text-align:center; color:var(--orange); font-size:0.82rem; font-weight:600; cursor:pointer; margin-bottom:12px; -webkit-tap-highlight-color:transparent; }
+  .inferno-log-btn:active { background:var(--border); }
+  .inferno-attempt { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:8px; position:relative; overflow:hidden; }
+  .inferno-attempt::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange); }
+  .inferno-attempt.cape::before { background:var(--gold); }
+  .inferno-attempt-top { display:flex; align-items:center; justify-content:space-between; }
+  .inferno-attempt-wave { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; }
+  .inferno-attempt.cape .inferno-attempt-wave { color:var(--gold); }
+  .inferno-attempt-date { font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--muted); }
+  .inferno-attempt-note { font-size:0.75rem; color:var(--muted); margin-top:4px; line-height:1.4; }
+  .inferno-attempt-del { position:absolute; top:10px; right:12px; background:none; border:none; color:var(--muted); font-size:0.85rem; cursor:pointer; padding:4px; }
+  .inferno-attempt-top { padding-right:20px; }
+  .no-attempts { text-align:center; padding:20px; color:var(--muted); font-size:0.8rem; line-height:1.6; }
+
+  .form-field { margin-bottom:14px; }
+  .form-label { font-family:'JetBrains Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; display:block; }
+  .form-input, .form-textarea, .form-row select { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'Inter',sans-serif; font-size:0.9rem; }
+  .form-textarea { resize:vertical; min-height:60px; font-family:'Inter',sans-serif; }
+  .form-row { display:flex; gap:10px; }
+  .form-row > div { flex:1; }
+  .form-checkbox-row { display:flex; align-items:center; gap:10px; padding:4px 0 14px; cursor:pointer; -webkit-user-select:none; user-select:none; }
+  .form-checkbox { width:20px; height:20px; border-radius:6px; border:2px solid var(--gold); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .form-checkbox.checked { background:var(--gold); }
+  .form-checkbox span { opacity:0; font-size:0.65rem; color:#08090b; }
+  .form-checkbox.checked span { opacity:1; }
+  .form-checkbox-label { font-size:0.85rem; font-weight:600; }
+  .form-save-btn { width:100%; background:var(--orange); border:none; border-radius:12px; padding:14px; text-align:center; color:#08090b; font-weight:700; font-size:0.88rem; cursor:pointer; }
+  .form-save-btn:active { opacity:0.8; }
 </style>
 </head>
 <body>
@@ -161,6 +196,41 @@
   <div class="ccna-stat-card" id="ccnaStatCard"></div>
   <div class="history-label">Last 3 Days</div>
   <div id="historyRoot"></div>
+</div>
+
+<div class="drawer-overlay" id="infernoDrawerOverlay" onclick="closeInfernoDrawer()"></div>
+<div class="drawer" id="infernoDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">Log Inferno Attempt</div>
+  <div class="drawer-subtitle">Add a fresh attempt or backfill a past one</div>
+
+  <div class="form-row">
+    <div class="form-field">
+      <label class="form-label">Date</label>
+      <input type="date" class="form-input" id="infDate">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Time</label>
+      <input type="time" class="form-input" id="infTime">
+    </div>
+  </div>
+
+  <div class="form-field">
+    <label class="form-label">Wave Reached (1-69)</label>
+    <input type="number" class="form-input" id="infWave" min="1" max="69" placeholder="e.g. 55">
+  </div>
+
+  <div class="form-checkbox-row" onclick="toggleInfCapeCheckbox()">
+    <div class="form-checkbox" id="infCapeCheckbox"><span>✓</span></div>
+    <div class="form-checkbox-label">Got the cape 🔥</div>
+  </div>
+
+  <div class="form-field">
+    <label class="form-label">Died to / notes (optional)</label>
+    <textarea class="form-textarea" id="infNote" placeholder="e.g. Ran out of supplies, JalNib+Jad overlap"></textarea>
+  </div>
+
+  <button class="form-save-btn" onclick="saveInfernoAttempt()">Save Attempt</button>
 </div>
 
 <div class="app-header">
@@ -200,6 +270,11 @@
 
   <div class="section-label">CCNA</div>
   <div id="ccnaRoot"></div>
+
+  <div class="section-label">Inferno Tracker</div>
+  <div class="inferno-stats-row" id="infernoStatsRow"></div>
+  <div class="inferno-log-btn" onclick="openInfernoDrawer()">+ Log Attempt</div>
+  <div id="infernoAttemptsRoot"></div>
 
   <div class="complete-banner" id="completeBanner">
     <div class="complete-emoji">🔥</div>
@@ -584,9 +659,119 @@ function setDateLabel() {
     new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
 }
 
-function render() { buildChecklist(); renderCcna(); updateProgress(); }
+// ---------------- Inferno Tracker (persistent, not tied to daily reset) ----------------
+const INFERNO_KEY = 'morning_machine_inferno';
+let inferno = { attempts: [] };
+let editingCape = false;
 
-loadAll(); loadCcna(); setDateLabel(); render();
+function loadInferno() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(INFERNO_KEY) || 'null');
+    inferno = saved || { attempts: [] };
+  } catch(e) { inferno = { attempts: [] }; }
+}
+function saveInferno() { localStorage.setItem(INFERNO_KEY, JSON.stringify(inferno)); }
+
+function openInfernoDrawer() {
+  const now = new Date();
+  document.getElementById('infDate').value = now.toISOString().slice(0,10);
+  document.getElementById('infTime').value = now.toTimeString().slice(0,5);
+  document.getElementById('infWave').value = '';
+  document.getElementById('infNote').value = '';
+  editingCape = false;
+  document.getElementById('infCapeCheckbox').classList.remove('checked');
+  document.getElementById('infernoDrawerOverlay').classList.add('open');
+  document.getElementById('infernoDrawer').classList.add('open');
+}
+function closeInfernoDrawer() {
+  document.getElementById('infernoDrawerOverlay').classList.remove('open');
+  document.getElementById('infernoDrawer').classList.remove('open');
+}
+function toggleInfCapeCheckbox() {
+  editingCape = !editingCape;
+  document.getElementById('infCapeCheckbox').classList.toggle('checked', editingCape);
+  if (editingCape) document.getElementById('infWave').value = 69;
+}
+
+function saveInfernoAttempt() {
+  const date = document.getElementById('infDate').value;
+  const time = document.getElementById('infTime').value;
+  let wave = parseInt(document.getElementById('infWave').value, 10);
+  const note = document.getElementById('infNote').value.trim();
+
+  if (!date) { alert('Pick a date.'); return; }
+  if (isNaN(wave) || wave < 1) { alert('Enter the wave you reached.'); return; }
+  if (wave > 69) wave = 69;
+
+  inferno.attempts.push({
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    date, time: time || '00:00',
+    wave, completed: editingCape || wave >= 69,
+    note
+  });
+  saveInferno();
+  closeInfernoDrawer();
+  renderInferno();
+}
+
+function deleteInfernoAttempt(id) {
+  if (!confirm('Delete this attempt?')) return;
+  inferno.attempts = inferno.attempts.filter(a => a.id !== id);
+  saveInferno();
+  renderInferno();
+}
+
+function renderInferno() {
+  const statsRoot = document.getElementById('infernoStatsRow');
+  const listRoot = document.getElementById('infernoAttemptsRoot');
+  if (!statsRoot || !listRoot) return;
+
+  const attempts = inferno.attempts;
+  const capeObtained = attempts.some(a => a.completed);
+  const bestWave = attempts.reduce((max, a) => Math.max(max, a.wave), 0);
+  const avgWave = attempts.length
+    ? Math.round(attempts.reduce((s,a) => s + a.wave, 0) / attempts.length)
+    : 0;
+
+  statsRoot.innerHTML = `
+    <div class="inferno-stat">
+      <div class="inferno-stat-num ${capeObtained ? 'cape' : ''}">${capeObtained ? '🔥' : bestWave}</div>
+      <div class="inferno-stat-label">${capeObtained ? 'Cape Obtained' : 'Best Wave'}</div>
+    </div>
+    <div class="inferno-stat">
+      <div class="inferno-stat-num">${attempts.length}</div>
+      <div class="inferno-stat-label">Attempts</div>
+    </div>
+    <div class="inferno-stat">
+      <div class="inferno-stat-num">${avgWave}</div>
+      <div class="inferno-stat-label">Avg Wave</div>
+    </div>`;
+
+  if (!attempts.length) {
+    listRoot.innerHTML = '<div class="no-attempts">No attempts logged yet.<br>Tap "+ Log Attempt" after your next run.</div>';
+    return;
+  }
+
+  const sorted = [...attempts].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+  listRoot.innerHTML = sorted.map(a => {
+    const d = new Date(a.date + 'T' + (a.time || '00:00'));
+    const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const timeStr = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    return `
+      <div class="inferno-attempt ${a.completed ? 'cape' : ''}">
+        <button class="inferno-attempt-del" onclick="deleteInfernoAttempt('${a.id}')">✕</button>
+        <div class="inferno-attempt-top">
+          <div class="inferno-attempt-wave">${a.completed ? '🔥 CAPE' : 'Wave ' + a.wave}</div>
+          <div class="inferno-attempt-date">${dateStr} · ${timeStr}</div>
+        </div>
+        ${a.note ? `<div class="inferno-attempt-note">${a.note}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function render() { buildChecklist(); renderCcna(); renderInferno(); updateProgress(); }
+
+loadAll(); loadCcna(); loadInferno(); setDateLabel(); render();
 
 function scheduleReset() {
   const now=new Date(), midnight=new Date(now); midnight.setHours(24,0,0,0);
