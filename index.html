@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>N10-009 Video Log</title>
+<title>N10-009 Progress Log</title>
 <style>
   :root {
     --bg: #0A0E12;
@@ -14,6 +14,7 @@
     --accent: #35D0BA;
     --accent-dim: #1E7A6C;
     --amber: #E8A33D;
+    --red: #D9705A;
     --text: #D7E1E8;
     --text-muted: #6E7F8A;
     --text-dim: #465560;
@@ -29,18 +30,11 @@
     font-family: 'IBM Plex Sans', -apple-system, sans-serif;
   }
 
-  body {
-    padding: 28px 16px 60px;
-  }
+  body { padding: 28px 16px 60px; }
 
-  .wrap {
-    max-width: 640px;
-    margin: 0 auto;
-  }
+  .wrap { max-width: 640px; margin: 0 auto; }
 
-  header {
-    margin-bottom: 20px;
-  }
+  header { margin-bottom: 20px; }
 
   .kicker {
     font-family: 'IBM Plex Mono', monospace;
@@ -50,11 +44,14 @@
     margin: 0 0 4px;
   }
 
-  h1 {
-    font-size: 21px;
-    font-weight: 600;
-    margin: 0;
-    letter-spacing: -0.01em;
+  h1 { font-size: 21px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+
+  section { margin-top: 22px; }
+
+  .section-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0 0 8px;
   }
 
   .stats-row {
@@ -65,19 +62,11 @@
     border: 1px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
-    margin-top: 18px;
   }
 
-  .stat {
-    background: var(--panel);
-    padding: 14px 12px;
-  }
+  .stat { background: var(--panel); padding: 14px 12px; }
 
-  .stat-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin: 0 0 6px;
-  }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin: 0 0 6px; }
 
   .stat-value {
     font-family: 'IBM Plex Mono', monospace;
@@ -102,10 +91,7 @@
     flex-wrap: wrap;
   }
 
-  .finish-label {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
+  .finish-label { font-size: 12px; color: var(--text-muted); }
 
   .finish-date {
     font-family: 'IBM Plex Mono', monospace;
@@ -115,6 +101,55 @@
   }
 
   .finish-date.done { color: var(--accent); }
+
+  .counter-panel {
+    margin-top: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+  }
+
+  .counter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .counter-main { display: flex; align-items: center; gap: 14px; }
+
+  .counter-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .counter-btn:active { background: var(--border); }
+
+  .counter-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+  .counter-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 26px;
+    color: var(--accent);
+    font-weight: 500;
+    min-width: 88px;
+    text-align: center;
+  }
+
+  .counter-value span { color: var(--text-dim); font-size: 16px; }
+
+  .counter-sub { font-size: 11px; color: var(--text-dim); margin-top: 10px; }
 
   .rate-control {
     margin-top: 10px;
@@ -128,22 +163,10 @@
     gap: 12px;
   }
 
-  .rate-label {
-    font-size: 13px;
-    color: var(--text);
-  }
+  .rate-label { font-size: 13px; color: var(--text); }
+  .rate-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 
-  .rate-sub {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 2px;
-  }
-
-  .rate-input-group {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .rate-input-group { display: flex; align-items: center; gap: 6px; }
 
   .rate-btn {
     width: 30px;
@@ -184,161 +207,121 @@
     padding: 12px 16px;
   }
 
-  .hopbar-track {
-    display: flex;
-    gap: 2px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
+  .hopbar-track { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 4px; }
 
-  .hop {
-    flex: 0 0 5px;
-    height: 20px;
+  .hop { flex: 0 0 5px; height: 20px; background: var(--border); border-radius: 1px; }
+
+  .hop.done { background: var(--accent); }
+
+  /* Practice test section */
+
+  .score-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
     background: var(--border);
-    border-radius: 1px;
-  }
-
-  .hop.done {
-    background: var(--accent);
-  }
-
-  .list-panel {
-    margin-top: 18px;
-  }
-
-  .list-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-
-  .list-title {
-    font-size: 13px;
-    color: var(--text-muted);
-  }
-
-  .filter-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 5px 9px;
-    cursor: pointer;
-  }
-
-  .filter-btn.active {
-    color: var(--accent);
-    border-color: var(--accent-dim);
-  }
-
-  .video-list {
     border: 1px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
   }
 
-  .video-row {
+  .score-stat { background: var(--panel); padding: 14px 12px; }
+
+  .score-add {
+    margin-top: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+  }
+
+  .score-input {
+    flex: 1 1 auto;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    border-radius: 4px;
+    padding: 10px 12px;
+  }
+
+  .score-input:focus { outline: 1px solid var(--accent); }
+
+  .score-add-btn {
+    background: var(--accent-dim);
+    color: var(--bg);
+    border: none;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+
+  .score-add-btn:active { background: var(--accent); }
+
+  .score-list {
+    margin-top: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 10px 14px;
     background: var(--panel);
     border-bottom: 1px solid var(--border-soft);
   }
 
-  .video-row:last-child { border-bottom: none; }
+  .score-row:last-child { border-bottom: none; }
 
-  .video-row.watched {
-    background: var(--panel-2);
-  }
+  .score-row-left { display: flex; align-items: center; gap: 10px; }
 
-  .video-check {
-    width: 20px;
-    height: 20px;
-    flex: 0 0 20px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    background: var(--panel-2);
-    cursor: pointer;
-    position: relative;
-  }
-
-  .video-row.watched .video-check {
-    background: var(--accent-dim);
-    border-color: var(--accent);
-  }
-
-  .video-row.watched .video-check::after {
-    content: '';
-    position: absolute;
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 9px;
-    border: solid var(--accent);
-    border-width: 0 2px 2px 0;
-    transform: rotate(40deg);
-  }
-
-  .video-num {
+  .score-num {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    color: var(--text-dim);
-    flex: 0 0 32px;
-  }
-
-  .video-row.watched .video-num {
-    color: var(--text-muted);
-  }
-
-  .video-title {
-    flex: 1 1 auto;
-    font-size: 14px;
-    color: var(--text-muted);
-    background: transparent;
-    border: none;
-    padding: 4px 0;
-    font-family: inherit;
-  }
-
-  .video-row.watched .video-title {
+    font-size: 17px;
     color: var(--text);
+    min-width: 44px;
   }
 
-  .video-title:focus {
-    outline: none;
-    color: var(--text);
-  }
+  .score-num.low { color: var(--red); }
+  .score-num.mid { color: var(--amber); }
+  .score-num.high { color: var(--accent); }
 
-  .video-date {
+  .score-date {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     color: var(--text-dim);
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    padding: 4px 6px;
-    flex: 0 0 108px;
-    text-align: right;
   }
 
-  .video-row.watched .video-date {
-    color: var(--amber);
-    border-color: var(--border);
+  .score-remove {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
   }
 
-  .video-date:focus {
-    outline: none;
-    border-color: var(--accent-dim);
+  .score-remove:hover { color: var(--red); }
+
+  .score-empty {
+    padding: 16px 14px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-dim);
+    background: var(--panel);
   }
 
-  .reset-row {
-    margin-top: 16px;
-    text-align: right;
-  }
+  .reset-row { margin-top: 20px; text-align: right; }
 
   .reset-btn {
     font-family: 'IBM Plex Mono', monospace;
@@ -348,6 +331,7 @@
     border: none;
     cursor: pointer;
     padding: 4px;
+    margin-left: 14px;
   }
 
   .reset-btn:hover { color: var(--text-muted); }
@@ -358,10 +342,6 @@
     color: var(--text-dim);
     text-align: center;
     margin-top: 18px;
-  }
-
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.5);
   }
 </style>
 </head>
@@ -393,6 +373,17 @@
     <span class="finish-date" id="finishDate">—</span>
   </div>
 
+  <div class="counter-panel">
+    <div class="counter-row">
+      <div class="counter-main">
+        <button class="counter-btn" id="watchedDown">−</button>
+        <div class="counter-value" id="watchedValue">0 <span>/ 87</span></div>
+        <button class="counter-btn" id="watchedUp">+</button>
+      </div>
+    </div>
+    <p class="counter-sub">Tap + each time you finish a video. Counts toward the total, no per-video log.</p>
+  </div>
+
   <div class="rate-control">
     <div>
       <div class="rate-label">Videos per day</div>
@@ -409,16 +400,35 @@
     <div class="hopbar-track" id="hopTrack"></div>
   </div>
 
-  <div class="list-panel">
-    <div class="list-header">
-      <span class="list-title">87 videos</span>
-      <button class="filter-btn active" id="filterToggle">Show all</button>
+  <section>
+    <p class="section-title">Practice test scores</p>
+
+    <div class="score-stats">
+      <div class="score-stat">
+        <p class="stat-label">Average</p>
+        <p class="stat-value" id="scoreAvg">—</p>
+      </div>
+      <div class="score-stat">
+        <p class="stat-label">Best</p>
+        <p class="stat-value accent" id="scoreBest">—</p>
+      </div>
+      <div class="score-stat">
+        <p class="stat-label">Most recent</p>
+        <p class="stat-value" id="scoreRecent">—</p>
+      </div>
     </div>
-    <div class="video-list" id="videoList"></div>
-  </div>
+
+    <div class="score-add">
+      <input class="score-input" id="scoreInput" type="number" min="0" max="100" placeholder="Score (0–100)">
+      <button class="score-add-btn" id="scoreAddBtn">Log score</button>
+    </div>
+
+    <div class="score-list" id="scoreList"></div>
+  </section>
 
   <div class="reset-row">
-    <button class="reset-btn" id="resetBtn">Clear all logged videos</button>
+    <button class="reset-btn" id="resetVideosBtn">Reset video count</button>
+    <button class="reset-btn" id="resetScoresBtn">Clear test scores</button>
   </div>
 
   <p class="status-line" id="statusLine">Loading saved log…</p>
@@ -427,24 +437,18 @@
 
 <script>
 const TOTAL_VIDEOS = 87;
-const STORAGE_KEY = 'n10009-video-log';
+const STORAGE_KEY = 'n10009-progress-log';
 
 let state = {
   rate: 1,
-  videos: {} // { "1": { watched: true, date: "2026-09-01", title: "" } }
+  watchedCount: 0,
+  testScores: [] // { score: number, date: "YYYY-MM-DD" }
 };
-
-let showOnlyUnwatched = false;
 
 function todayISO() {
   const d = new Date();
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   return d.toISOString().slice(0, 10);
-}
-
-function formatDisplayDate(iso) {
-  const d = new Date(iso + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
 async function loadState() {
@@ -453,7 +457,8 @@ async function loadState() {
     if (result && result.value) {
       const parsed = JSON.parse(result.value);
       state.rate = parsed.rate || 1;
-      state.videos = parsed.videos || {};
+      state.watchedCount = parsed.watchedCount || 0;
+      state.testScores = parsed.testScores || [];
     }
   } catch (e) {
     // no saved state yet
@@ -471,12 +476,8 @@ async function saveState() {
   }
 }
 
-function watchedCount() {
-  return Object.values(state.videos).filter(v => v && v.watched).length;
-}
-
 function computeFinish() {
-  const watched = watchedCount();
+  const watched = state.watchedCount;
   const remaining = TOTAL_VIDEOS - watched;
   const rate = Math.max(1, state.rate);
 
@@ -493,7 +494,7 @@ function computeFinish() {
 }
 
 function renderStats() {
-  const watched = watchedCount();
+  const watched = state.watchedCount;
   const { remaining, days, dateLabel, done } = computeFinish();
 
   document.getElementById('statWatched').textContent = `${watched} / ${TOTAL_VIDEOS}`;
@@ -503,6 +504,10 @@ function renderStats() {
   const finishEl = document.getElementById('finishDate');
   finishEl.textContent = dateLabel;
   finishEl.classList.toggle('done', done);
+
+  document.getElementById('watchedValue').innerHTML = `${watched} <span>/ 87</span>`;
+  document.getElementById('watchedDown').classList.toggle('disabled', watched <= 0);
+  document.getElementById('watchedUp').classList.toggle('disabled', watched >= TOTAL_VIDEOS);
 }
 
 function renderHopbar() {
@@ -510,80 +515,90 @@ function renderHopbar() {
   track.innerHTML = '';
   for (let i = 1; i <= TOTAL_VIDEOS; i++) {
     const hop = document.createElement('div');
-    hop.className = 'hop' + (state.videos[i]?.watched ? ' done' : '');
+    hop.className = 'hop' + (i <= state.watchedCount ? ' done' : '');
     track.appendChild(hop);
   }
 }
 
-function renderList() {
-  const list = document.getElementById('videoList');
+function scoreClass(score) {
+  if (score >= 80) return 'high';
+  if (score >= 65) return 'mid';
+  return 'low';
+}
+
+function renderScores() {
+  const scores = state.testScores;
+
+  if (scores.length === 0) {
+    document.getElementById('scoreAvg').textContent = '—';
+    document.getElementById('scoreBest').textContent = '—';
+    document.getElementById('scoreRecent').textContent = '—';
+  } else {
+    const values = scores.map(s => s.score);
+    const avg = Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10;
+    const best = Math.max(...values);
+    const recent = scores[scores.length - 1].score;
+
+    document.getElementById('scoreAvg').textContent = `${avg}%`;
+    document.getElementById('scoreBest').textContent = `${best}%`;
+    document.getElementById('scoreRecent').textContent = `${recent}%`;
+  }
+
+  const list = document.getElementById('scoreList');
   list.innerHTML = '';
 
-  for (let i = 1; i <= TOTAL_VIDEOS; i++) {
-    const entry = state.videos[i] || { watched: false, date: '', title: '' };
-    if (showOnlyUnwatched && entry.watched) continue;
+  if (scores.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'score-empty';
+    empty.textContent = 'No scores logged yet.';
+    list.appendChild(empty);
+    return;
+  }
 
+  scores.slice().reverse().forEach((entry) => {
+    const realIndex = scores.indexOf(entry);
     const row = document.createElement('div');
-    row.className = 'video-row' + (entry.watched ? ' watched' : '');
+    row.className = 'score-row';
 
-    const check = document.createElement('div');
-    check.className = 'video-check';
-    check.addEventListener('click', () => toggleWatched(i));
+    const left = document.createElement('div');
+    left.className = 'score-row-left';
 
     const num = document.createElement('span');
-    num.className = 'video-num';
-    num.textContent = String(i).padStart(3, '0');
+    num.className = 'score-num ' + scoreClass(entry.score);
+    num.textContent = `${entry.score}%`;
 
-    const title = document.createElement('input');
-    title.className = 'video-title';
-    title.type = 'text';
-    title.placeholder = `Video ${i}`;
-    title.value = entry.title || '';
-    title.addEventListener('change', (e) => {
-      setVideo(i, { title: e.target.value });
-    });
+    const date = document.createElement('span');
+    date.className = 'score-date';
+    date.textContent = entry.date;
 
-    const date = document.createElement('input');
-    date.className = 'video-date';
-    date.type = 'date';
-    date.value = entry.date || '';
-    date.disabled = !entry.watched;
-    date.addEventListener('change', (e) => {
-      setVideo(i, { date: e.target.value });
-    });
+    left.appendChild(num);
+    left.appendChild(date);
 
-    row.appendChild(check);
-    row.appendChild(num);
-    row.appendChild(title);
-    row.appendChild(date);
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'score-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', () => removeScore(realIndex));
+
+    row.appendChild(left);
+    row.appendChild(removeBtn);
     list.appendChild(row);
-  }
-}
-
-function setVideo(index, patch) {
-  const current = state.videos[index] || { watched: false, date: '', title: '' };
-  state.videos[index] = { ...current, ...patch };
-  saveState();
-  render();
-}
-
-function toggleWatched(index) {
-  const current = state.videos[index] || { watched: false, date: '', title: '' };
-  const nowWatched = !current.watched;
-  state.videos[index] = {
-    ...current,
-    watched: nowWatched,
-    date: nowWatched ? (current.date || todayISO()) : current.date
-  };
-  saveState();
-  render();
+  });
 }
 
 function render() {
   renderStats();
   renderHopbar();
-  renderList();
+  renderScores();
 }
+
+function setWatched(value) {
+  state.watchedCount = Math.max(0, Math.min(TOTAL_VIDEOS, value));
+  saveState();
+  render();
+}
+
+document.getElementById('watchedUp').addEventListener('click', () => setWatched(state.watchedCount + 1));
+document.getElementById('watchedDown').addEventListener('click', () => setWatched(state.watchedCount - 1));
 
 document.getElementById('rateInput').addEventListener('change', (e) => {
   const val = Math.max(1, parseInt(e.target.value, 10) || 1);
@@ -607,16 +622,37 @@ document.getElementById('rateDown').addEventListener('click', () => {
   renderStats();
 });
 
-document.getElementById('filterToggle').addEventListener('click', (e) => {
-  showOnlyUnwatched = !showOnlyUnwatched;
-  e.target.textContent = showOnlyUnwatched ? 'Show all' : 'Show unwatched';
-  e.target.classList.toggle('active', true);
-  renderList();
+function addScore() {
+  const input = document.getElementById('scoreInput');
+  const val = parseFloat(input.value);
+  if (isNaN(val) || val < 0 || val > 100) return;
+  state.testScores.push({ score: Math.round(val * 10) / 10, date: todayISO() });
+  input.value = '';
+  saveState();
+  render();
+}
+
+function removeScore(index) {
+  state.testScores.splice(index, 1);
+  saveState();
+  render();
+}
+
+document.getElementById('scoreAddBtn').addEventListener('click', addScore);
+document.getElementById('scoreInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addScore();
 });
 
-document.getElementById('resetBtn').addEventListener('click', () => {
-  if (!confirm('Clear all logged videos? This cannot be undone.')) return;
-  state.videos = {};
+document.getElementById('resetVideosBtn').addEventListener('click', () => {
+  if (!confirm('Reset watched video count to 0?')) return;
+  state.watchedCount = 0;
+  saveState();
+  render();
+});
+
+document.getElementById('resetScoresBtn').addEventListener('click', () => {
+  if (!confirm('Clear all logged practice test scores?')) return;
+  state.testScores = [];
   saveState();
   render();
 });
