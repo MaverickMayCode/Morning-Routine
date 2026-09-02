@@ -451,26 +451,26 @@ function todayISO() {
   return d.toISOString().slice(0, 10);
 }
 
-async function loadState() {
+function loadState() {
   try {
-    const result = await window.storage.get(STORAGE_KEY, false);
-    if (result && result.value) {
-      const parsed = JSON.parse(result.value);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
       state.rate = parsed.rate || 1;
       state.watchedCount = parsed.watchedCount || 0;
       state.testScores = parsed.testScores || [];
     }
+    document.getElementById('statusLine').textContent = 'Saved in this browser.';
   } catch (e) {
-    // no saved state yet
+    document.getElementById('statusLine').textContent = 'Local storage unavailable. Changes will not persist.';
   }
   document.getElementById('rateInput').value = state.rate;
   render();
-  document.getElementById('statusLine').textContent = 'Saved locally to your account.';
 }
 
-async function saveState() {
+function saveState() {
   try {
-    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     document.getElementById('statusLine').textContent = 'Save failed. Changes may not persist.';
   }
