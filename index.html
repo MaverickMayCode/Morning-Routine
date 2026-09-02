@@ -2,782 +2,626 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Morning Machine">
-<title>Morning Machine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N10-009 Video Log</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg:#08090b; --surface:#0f1114; --card:#13161a; --border:#1c2028;
-    --accent:#00e5ff; --gold:#f5c518; --green:#39d98a; --purple:#a855f7;
-    --red:#ff4d6d; --orange:#f97316; --text:#e8eaed; --muted:#5a6270; --dimmed:#2e333c;
+    --bg: #0A0E12;
+    --panel: #11161C;
+    --panel-2: #0D1216;
+    --border: #1E2831;
+    --border-soft: #17202A;
+    --accent: #35D0BA;
+    --accent-dim: #1E7A6C;
+    --amber: #E8A33D;
+    --text: #D7E1E8;
+    --text-muted: #6E7F8A;
+    --text-dim: #465560;
   }
-  html, body { height:100%; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; overscroll-behavior:none; -webkit-tap-highlight-color:transparent; }
-  body { display:flex; flex-direction:column; min-height:100vh; padding-bottom:env(safe-area-inset-bottom); }
 
-  .app-header { position:sticky; top:0; z-index:100; background:rgba(8,9,11,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:14px 20px 12px; border-bottom:1px solid var(--border); }
-  .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-  .app-title { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:0.05em; line-height:1; }
-  .app-title span { color:var(--accent); }
-  .date-label { font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
-  .header-actions { display:flex; align-items:center; gap:8px; }
-  .icon-btn { background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-size:1rem; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s; -webkit-tap-highlight-color:transparent; }
-  .icon-btn:active { background:var(--border); color:var(--text); }
-  .icon-btn.active { border-color:var(--accent); color:var(--accent); }
-  .reset-btn { background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:0.1em; padding:6px 10px; cursor:pointer; text-transform:uppercase; transition:all 0.15s; height:34px; }
-  .reset-btn:active { background:var(--border); color:var(--text); }
-  .progress-wrap { display:flex; align-items:center; gap:10px; }
-  .progress-bar-bg { flex:1; height:4px; background:var(--border); border-radius:99px; overflow:hidden; }
-  .progress-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--green)); transition:width 0.4s cubic-bezier(0.4,0,0.2,1); width:0%; }
-  .progress-count { font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--muted); white-space:nowrap; min-width:44px; text-align:right; }
+  * { box-sizing: border-box; }
 
-  .scroll-content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 16px 32px; }
-  .section-label { font-family:'JetBrains Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin:20px 4px 8px; }
-  .section-label:first-child { margin-top:4px; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
 
-  .check-item { display:flex; align-items:flex-start; gap:12px; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:8px; cursor:pointer; transition:opacity 0.2s,border-color 0.2s,background 0.2s; -webkit-user-select:none; user-select:none; position:relative; overflow:hidden; }
-  .check-item:active { transform:scale(0.985); }
-  .check-item.done { opacity:0.45; }
-  .check-item.done .item-title { text-decoration:line-through; text-decoration-color:var(--muted); }
-  .check-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:14px 0 0 14px; background:var(--item-color,var(--muted)); opacity:0; transition:opacity 0.2s; }
-  .check-item:not(.done)::before { opacity:1; }
-  .checkbox { width:22px; height:22px; border-radius:50%; border:2px solid var(--item-color,var(--muted)); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:background 0.2s,border-color 0.2s; }
-  .check-item.done .checkbox { background:var(--item-color,var(--muted)); border-color:var(--item-color,var(--muted)); }
-  .checkmark { opacity:0; transform:scale(0); transition:opacity 0.15s,transform 0.15s cubic-bezier(0.34,1.56,0.64,1); font-size:0.7rem; }
-  .check-item.done .checkmark { opacity:1; transform:scale(1); }
-  .item-body { flex:1; min-width:0; }
-  .item-header { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
-  .item-icon { font-size:0.95rem; line-height:1; }
-  .item-title { font-size:0.88rem; font-weight:600; color:var(--text); line-height:1.2; }
-  .item-time { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--muted); white-space:nowrap; padding-left:6px; }
-  .item-sub { font-size:0.72rem; color:var(--muted); line-height:1.5; margin-top:2px; }
+  body {
+    padding: 28px 16px 60px;
+  }
 
-  /* CCNA CARD */
-  .ccna-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:8px; position:relative; overflow:hidden; }
-  .ccna-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); }
-  .ccna-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
-  .ccna-title-wrap { display:flex; align-items:baseline; gap:8px; }
-  .ccna-title { font-size:0.88rem; font-weight:700; color:var(--text); }
-  .ccna-day { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--accent); }
-  .ccna-edit { background:none; border:none; color:var(--muted); font-size:0.85rem; cursor:pointer; padding:4px; }
-  .ccna-badge { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:0.6rem; letter-spacing:0.05em; padding:2px 8px; border-radius:99px; margin-top:6px; margin-bottom:10px; }
-  .ccna-badge.behind { background:rgba(255,77,109,0.15); color:var(--red); }
-  .ccna-badge.ahead { background:rgba(57,217,138,0.15); color:var(--green); }
-  .ccna-badge.pace { background:rgba(90,98,112,0.15); color:var(--muted); }
-  .ccna-sub { display:flex; align-items:center; gap:10px; padding:8px 0; cursor:pointer; -webkit-user-select:none; user-select:none; }
-  .ccna-sub-checkbox { width:19px; height:19px; border-radius:6px; border:2px solid var(--accent); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
-  .ccna-sub.done .ccna-sub-checkbox { background:var(--accent); }
-  .ccna-sub-check { opacity:0; transform:scale(0); transition:opacity 0.15s,transform 0.15s cubic-bezier(0.34,1.56,0.64,1); font-size:0.6rem; color:#08090b; }
-  .ccna-sub.done .ccna-sub-check { opacity:1; transform:scale(1); }
-  .ccna-sub-title { font-size:0.82rem; font-weight:500; }
-  .ccna-sub.done .ccna-sub-title { text-decoration:line-through; color:var(--muted); }
-  .ccna-advanced { font-size:0.72rem; color:var(--green); font-weight:600; margin-top:6px; display:none; }
-  .ccna-advanced.show { display:block; }
-  .ccna-finished { text-align:center; padding:4px 0; }
-  .ccna-finished-title { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:var(--gold); letter-spacing:0.05em; }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+  }
 
-  .complete-banner { display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:48px 24px; gap:12px; }
-  .complete-banner.visible { display:flex; }
-  .complete-emoji { font-size:3.5rem; margin-bottom:4px; }
-  .complete-title { font-family:'Bebas Neue',sans-serif; font-size:2.8rem; letter-spacing:0.05em; color:var(--green); line-height:1; }
-  .complete-sub { font-size:0.85rem; color:var(--muted); max-width:260px; line-height:1.5; }
+  header {
+    margin-bottom: 20px;
+  }
 
-  .work-block { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; align-items:center; gap:12px; margin-top:8px; }
-  .work-time { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--muted); line-height:1; white-space:nowrap; }
-  .work-label { font-size:0.82rem; font-weight:600; color:var(--muted); }
-  .work-sub { font-size:0.7rem; color:var(--dimmed); }
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+    margin: 0 0 4px;
+  }
 
-  .sleep-bar { display:flex; gap:8px; margin-bottom:4px; }
-  .sleep-card { flex:1; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; text-align:center; }
-  .sleep-label { font-family:'JetBrains Mono',monospace; font-size:0.58rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
-  .sleep-time { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; line-height:1; }
-  .sleep-note { font-size:0.65rem; color:var(--muted); margin-top:2px; }
+  h1 {
+    font-size: 21px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
 
-  .confetti-wrap { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:999; display:none; }
-  .confetti-wrap.active { display:block; }
-  @keyframes fall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
-  .cp { position:absolute; width:8px; height:8px; border-radius:2px; animation:fall linear forwards; }
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 18px;
+  }
 
-  /* DRAWER */
-  .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; opacity:0; pointer-events:none; transition:opacity 0.3s; }
-  .drawer-overlay.open { opacity:1; pointer-events:all; }
-  .drawer { position:fixed; bottom:0; left:0; right:0; z-index:201; background:#0f1114; border-top:1px solid var(--border); border-radius:20px 20px 0 0; padding:0 20px calc(32px + env(safe-area-inset-bottom)); transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); max-height:80vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  .drawer.open { transform:translateY(0); }
-  .drawer-handle { width:36px; height:4px; background:var(--border); border-radius:99px; margin:12px auto 20px; }
-  .drawer-title { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:0.05em; margin-bottom:4px; }
-  .drawer-subtitle { font-size:0.72rem; color:var(--muted); margin-bottom:20px; }
+  .stat {
+    background: var(--panel);
+    padding: 14px 12px;
+  }
 
-  .streak-row { display:flex; gap:10px; margin-bottom:20px; }
-  .streak-card { flex:1; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 12px; text-align:center; }
-  .streak-num { font-family:'Bebas Neue',sans-serif; font-size:2.4rem; line-height:1; margin-bottom:2px; }
-  .streak-label { font-family:'JetBrains Mono',monospace; font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
-  .streak-sub { font-size:0.65rem; color:var(--muted); margin-top:3px; }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 0 0 6px;
+  }
 
-  .history-label { font-family:'JetBrains Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
-  .history-day { background:var(--card); border:1px solid var(--border); border-radius:14px; margin-bottom:8px; overflow:hidden; }
-  .history-day-header { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-  .history-day-name { font-size:0.82rem; font-weight:600; }
-  .history-day-count { font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--muted); }
-  .history-perfect { font-size:0.7rem; color:var(--green); font-weight:600; }
-  .history-mini-bar { flex:1; height:4px; background:var(--border); border-radius:99px; overflow:hidden; max-width:80px; }
-  .history-mini-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--green)); }
-  .history-chevron { font-size:0.7rem; color:var(--muted); transition:transform 0.2s; margin-left:8px; }
-  .history-day.expanded .history-chevron { transform:rotate(180deg); }
-  .history-items { display:none; padding:0 14px 12px; gap:4px; flex-direction:column; }
-  .history-day.expanded .history-items { display:flex; }
-  .history-item { display:flex; align-items:center; gap:8px; font-size:0.75rem; color:var(--muted); padding:3px 0; }
-  .history-item.did { color:var(--text); }
-  .history-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; background:var(--border); }
-  .history-item.did .history-dot { background:var(--green); }
-  .no-history { text-align:center; padding:24px; color:var(--muted); font-size:0.8rem; line-height:1.6; }
+  .stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    margin: 0;
+  }
 
-  .ccna-stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px 12px; text-align:center; margin-bottom:20px; }
+  .stat-value.accent { color: var(--accent); }
 
-  /* INFERNO TRACKER */
-  .inferno-stats-row { display:flex; gap:8px; margin-bottom:10px; }
-  .inferno-stat { flex:1; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 8px; text-align:center; }
-  .inferno-stat-num { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; line-height:1; color:var(--orange); }
-  .inferno-stat-num.cape { color:var(--gold); }
-  .inferno-stat-label { font-family:'JetBrains Mono',monospace; font-size:0.55rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-top:3px; }
-  .inferno-log-btn { width:100%; background:var(--card); border:1px dashed var(--border); border-radius:14px; padding:13px; text-align:center; color:var(--orange); font-size:0.82rem; font-weight:600; cursor:pointer; margin-bottom:12px; -webkit-tap-highlight-color:transparent; }
-  .inferno-log-btn:active { background:var(--border); }
-  .inferno-attempt { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:8px; position:relative; overflow:hidden; }
-  .inferno-attempt::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange); }
-  .inferno-attempt.cape::before { background:var(--gold); }
-  .inferno-attempt-top { display:flex; align-items:center; justify-content:space-between; }
-  .inferno-attempt-wave { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; }
-  .inferno-attempt.cape .inferno-attempt-wave { color:var(--gold); }
-  .inferno-attempt-date { font-family:'JetBrains Mono',monospace; font-size:0.6rem; color:var(--muted); }
-  .inferno-attempt-note { font-size:0.75rem; color:var(--muted); margin-top:4px; line-height:1.4; }
-  .inferno-attempt-del { position:absolute; top:10px; right:12px; background:none; border:none; color:var(--muted); font-size:0.85rem; cursor:pointer; padding:4px; }
-  .inferno-attempt-top { padding-right:20px; }
-  .no-attempts { text-align:center; padding:20px; color:var(--muted); font-size:0.8rem; line-height:1.6; }
+  .finish-panel {
+    margin-top: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
 
-  .form-field { margin-bottom:14px; }
-  .form-label { font-family:'JetBrains Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; display:block; }
-  .form-input, .form-textarea, .form-row select { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'Inter',sans-serif; font-size:0.9rem; }
-  .form-textarea { resize:vertical; min-height:60px; font-family:'Inter',sans-serif; }
-  .form-row { display:flex; gap:10px; }
-  .form-row > div { flex:1; }
-  .form-checkbox-row { display:flex; align-items:center; gap:10px; padding:4px 0 14px; cursor:pointer; -webkit-user-select:none; user-select:none; }
-  .form-checkbox { width:20px; height:20px; border-radius:6px; border:2px solid var(--gold); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
-  .form-checkbox.checked { background:var(--gold); }
-  .form-checkbox span { opacity:0; font-size:0.65rem; color:#08090b; }
-  .form-checkbox.checked span { opacity:1; }
-  .form-checkbox-label { font-size:0.85rem; font-weight:600; }
-  .form-save-btn { width:100%; background:var(--orange); border:none; border-radius:12px; padding:14px; text-align:center; color:#08090b; font-weight:700; font-size:0.88rem; cursor:pointer; }
-  .form-save-btn:active { opacity:0.8; }
+  .finish-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .finish-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    color: var(--amber);
+    font-weight: 500;
+  }
+
+  .finish-date.done { color: var(--accent); }
+
+  .rate-control {
+    margin-top: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .rate-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .rate-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .rate-input-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .rate-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rate-btn:active { background: var(--border); }
+
+  .rate-input {
+    width: 48px;
+    text-align: center;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    border-radius: 4px;
+    padding: 6px 2px;
+  }
+
+  .rate-input:focus { outline: 1px solid var(--accent); }
+
+  .hopbar {
+    margin-top: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+  }
+
+  .hopbar-track {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .hop {
+    flex: 0 0 5px;
+    height: 20px;
+    background: var(--border);
+    border-radius: 1px;
+  }
+
+  .hop.done {
+    background: var(--accent);
+  }
+
+  .list-panel {
+    margin-top: 18px;
+  }
+
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .list-title {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .filter-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 9px;
+    cursor: pointer;
+  }
+
+  .filter-btn.active {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+  }
+
+  .video-list {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .video-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .video-row:last-child { border-bottom: none; }
+
+  .video-row.watched {
+    background: var(--panel-2);
+  }
+
+  .video-check {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--panel-2);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .video-row.watched .video-check {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+
+  .video-row.watched .video-check::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
+    border: solid var(--accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+  }
+
+  .video-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    flex: 0 0 32px;
+  }
+
+  .video-row.watched .video-num {
+    color: var(--text-muted);
+  }
+
+  .video-title {
+    flex: 1 1 auto;
+    font-size: 14px;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    padding: 4px 0;
+    font-family: inherit;
+  }
+
+  .video-row.watched .video-title {
+    color: var(--text);
+  }
+
+  .video-title:focus {
+    outline: none;
+    color: var(--text);
+  }
+
+  .video-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 4px 6px;
+    flex: 0 0 108px;
+    text-align: right;
+  }
+
+  .video-row.watched .video-date {
+    color: var(--amber);
+    border-color: var(--border);
+  }
+
+  .video-date:focus {
+    outline: none;
+    border-color: var(--accent-dim);
+  }
+
+  .reset-row {
+    margin-top: 16px;
+    text-align: right;
+  }
+
+  .reset-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .reset-btn:hover { color: var(--text-muted); }
+
+  .status-line {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 18px;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+  }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="confetti-wrap" id="confetti"></div>
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <header>
+    <p class="kicker">CompTIA N10-009</p>
+    <h1>Video progress log</h1>
+  </header>
 
-<div class="drawer" id="statsDrawer">
-  <div class="drawer-handle"></div>
-  <div class="drawer-title">Your Stats</div>
-  <div class="drawer-subtitle">Streaks, CCNA pace, and last 3 days</div>
-  <div class="streak-row">
-    <div class="streak-card">
-      <div class="streak-num" id="useStreakNum" style="color:var(--accent)">0</div>
-      <div class="streak-label">Day Streak</div>
-      <div class="streak-sub">App opened</div>
+  <div class="stats-row">
+    <div class="stat">
+      <p class="stat-label">Watched</p>
+      <p class="stat-value accent" id="statWatched">0 / 87</p>
     </div>
-    <div class="streak-card">
-      <div class="streak-num" id="perfectStreakNum" style="color:var(--gold)">0</div>
-      <div class="streak-label">Perfect Streak</div>
-      <div class="streak-sub">100% complete</div>
+    <div class="stat">
+      <p class="stat-label">Remaining</p>
+      <p class="stat-value" id="statRemaining">87</p>
     </div>
-  </div>
-  <div class="ccna-stat-card" id="ccnaStatCard"></div>
-  <div class="history-label">Last 3 Days</div>
-  <div id="historyRoot"></div>
-</div>
-
-<div class="drawer-overlay" id="infernoDrawerOverlay" onclick="closeInfernoDrawer()"></div>
-<div class="drawer" id="infernoDrawer">
-  <div class="drawer-handle"></div>
-  <div class="drawer-title">Log Inferno Attempt</div>
-  <div class="drawer-subtitle">Add a fresh attempt or backfill a past one</div>
-
-  <div class="form-row">
-    <div class="form-field">
-      <label class="form-label">Date</label>
-      <input type="date" class="form-input" id="infDate">
-    </div>
-    <div class="form-field">
-      <label class="form-label">Time</label>
-      <input type="time" class="form-input" id="infTime">
+    <div class="stat">
+      <p class="stat-label">Days needed</p>
+      <p class="stat-value" id="statDays">—</p>
     </div>
   </div>
 
-  <div class="form-field">
-    <label class="form-label">Wave Reached (1-69)</label>
-    <input type="number" class="form-input" id="infWave" min="1" max="69" placeholder="e.g. 55">
+  <div class="finish-panel">
+    <span class="finish-label">Expected finish date</span>
+    <span class="finish-date" id="finishDate">—</span>
   </div>
 
-  <div class="form-checkbox-row" onclick="toggleInfCapeCheckbox()">
-    <div class="form-checkbox" id="infCapeCheckbox"><span>✓</span></div>
-    <div class="form-checkbox-label">Got the cape 🔥</div>
-  </div>
-
-  <div class="form-field">
-    <label class="form-label">Died to / notes (optional)</label>
-    <textarea class="form-textarea" id="infNote" placeholder="e.g. Ran out of supplies, JalNib+Jad overlap"></textarea>
-  </div>
-
-  <button class="form-save-btn" onclick="saveInfernoAttempt()">Save Attempt</button>
-</div>
-
-<div class="app-header">
-  <div class="header-top">
+  <div class="rate-control">
     <div>
-      <div class="app-title">MORNING <span>MACHINE</span></div>
-      <div class="date-label" id="dateLabel"></div>
+      <div class="rate-label">Videos per day</div>
+      <div class="rate-sub">Used to project the finish date</div>
     </div>
-    <div class="header-actions">
-      <button class="icon-btn" id="statsBtn" onclick="openDrawer()">📊</button>
-      <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
-    </div>
-  </div>
-  <div class="progress-wrap">
-    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
-    <div class="progress-count" id="progressCount">0 / 0</div>
-  </div>
-</div>
-
-<div class="scroll-content">
-  <div class="section-label">Tonight's Target</div>
-  <div class="sleep-bar">
-    <div class="sleep-card">
-      <div class="sleep-label">Lights Out</div>
-      <div class="sleep-time" style="color:var(--purple)">12:30</div>
-      <div class="sleep-note">AM</div>
-    </div>
-    <div class="sleep-card">
-      <div class="sleep-label">Wake Up</div>
-      <div class="sleep-time" style="color:var(--gold)">9:30</div>
-      <div class="sleep-note">AM</div>
+    <div class="rate-input-group">
+      <button class="rate-btn" id="rateDown">−</button>
+      <input class="rate-input" id="rateInput" type="number" min="1" step="1" value="1">
+      <button class="rate-btn" id="rateUp">+</button>
     </div>
   </div>
 
-  <div class="section-label">The Non-Negotiables</div>
-  <div id="checklistRoot"></div>
-
-  <div class="section-label">CCNA</div>
-  <div id="ccnaRoot"></div>
-
-  <div class="section-label">Inferno Tracker</div>
-  <div class="inferno-stats-row" id="infernoStatsRow"></div>
-  <div class="inferno-log-btn" onclick="openInfernoDrawer()">+ Log Attempt</div>
-  <div id="infernoAttemptsRoot"></div>
-
-  <div class="complete-banner" id="completeBanner">
-    <div class="complete-emoji">🔥</div>
-    <div class="complete-title">LOCKED IN</div>
-    <div class="complete-sub">Every block done. You're walking into work already ahead. Go be a machine.</div>
+  <div class="hopbar">
+    <div class="hopbar-track" id="hopTrack"></div>
   </div>
 
-  <div class="section-label">On The Clock</div>
-  <div class="work-block">
-    <div class="work-time">1–9 PM</div>
-    <div>
-      <div class="work-label">REV Telecommunications</div>
-      <div class="work-sub">Bring the energy you built this morning.</div>
+  <div class="list-panel">
+    <div class="list-header">
+      <span class="list-title">87 videos</span>
+      <button class="filter-btn active" id="filterToggle">Show all</button>
     </div>
+    <div class="video-list" id="videoList"></div>
   </div>
+
+  <div class="reset-row">
+    <button class="reset-btn" id="resetBtn">Clear all logged videos</button>
+  </div>
+
+  <p class="status-line" id="statusLine">Loading saved log…</p>
+
 </div>
 
 <script>
-const STORAGE_KEY = 'morning_machine_v3';
-const HISTORY_KEY = 'morning_machine_history';
-const CCNA_KEY = 'morning_machine_ccna';
-const CCNA_TOTAL_DAYS = 54;
+const TOTAL_VIDEOS = 87;
+const STORAGE_KEY = 'n10009-video-log';
 
-// ---- Simple daily non-negotiables (kept lean on purpose) ----
-const SIMPLE_ITEMS = [
-  { id:'wake',     icon:'⏰', title:'Up by 9:30',              sub:'No snoozing past it',                time:'9:30',  color:'#f5c518' },
-  { id:'workout',  icon:'🏋️', title:'Workout',                 sub:'Even a short one counts',            time:'10:15', color:'#39d98a' },
-  { id:'getready', icon:'🚿', title:'Shower, eat, get dressed', sub:'Ready to walk out the door by 12:45', time:'12:15', color:'#ff4d6d' },
-];
+let state = {
+  rate: 1,
+  videos: {} // { "1": { watched: true, date: "2026-09-01", title: "" } }
+};
 
-// ALL_ITEMS includes a virtual 'ccna' entry so progress/streak/history logic
-// (written for the old 15-item list) keeps working unchanged.
-const ALL_ITEMS = [...SIMPLE_ITEMS, { id:'ccna', icon:'📡', title:'CCNA — Day complete' }];
-const TOTAL = ALL_ITEMS.length;
+let showOnlyUnwatched = false;
 
-let state = {}, history = {}, ccna = {};
+function todayISO() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 10);
+}
 
-// ---------------- Daily state (resets at midnight) ----------------
-function loadAll() {
+function formatDisplayDate(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+}
+
+async function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const today = new Date().toDateString();
-    if (saved.date !== today) {
-      if (saved.date) archiveDay(saved.date, saved);
-      state = { date: today };
-    } else {
-      state = saved;
+    const result = await window.storage.get(STORAGE_KEY, false);
+    if (result && result.value) {
+      const parsed = JSON.parse(result.value);
+      state.rate = parsed.rate || 1;
+      state.videos = parsed.videos || {};
     }
-  } catch(e) { state = { date: new Date().toDateString() }; }
-  try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}'); }
-  catch(e) { history = {}; }
-  recordOpen(new Date().toDateString());
+  } catch (e) {
+    // no saved state yet
+  }
+  document.getElementById('rateInput').value = state.rate;
+  render();
+  document.getElementById('statusLine').textContent = 'Saved locally to your account.';
 }
 
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-function saveHistory() { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }
-
-function archiveDay(dateStr, dayState) {
-  const items = {};
-  ALL_ITEMS.forEach(i => { items[i.id] = !!dayState[i.id]; });
-  const done = Object.values(items).filter(Boolean).length;
-  history[dateStr] = { items, done, total:TOTAL, perfect: done === TOTAL, opened:true };
-  const keys = Object.keys(history).sort((a,b) => new Date(b)-new Date(a));
-  if (keys.length > 30) keys.slice(30).forEach(k => delete history[k]);
-  saveHistory();
-}
-
-function recordOpen(dateStr) {
-  if (!history[dateStr]) history[dateStr] = { items:{}, done:0, total:TOTAL, perfect:false, opened:true };
-  else history[dateStr].opened = true;
-  saveHistory();
-}
-
-function calcStreaks() {
-  const today = new Date().toDateString();
-  let useStreak = history[today]?.opened ? 1 : 0;
-  let d = new Date(); d.setDate(d.getDate()-1);
-  while (history[d.toDateString()]?.opened) { useStreak++; d.setDate(d.getDate()-1); }
-
-  const todayDone = ALL_ITEMS.filter(i => state[i.id]).length;
-  let perfectStreak = todayDone === TOTAL ? 1 : 0;
-  let pd = new Date(); pd.setDate(pd.getDate() - (todayDone === TOTAL ? 1 : 0));
-  if (todayDone !== TOTAL) pd.setDate(pd.getDate()-1);
-  while (history[pd.toDateString()]?.perfect) { perfectStreak++; pd.setDate(pd.getDate()-1); }
-
-  return { useStreak, perfectStreak };
-}
-
-// ---------------- CCNA persistent tracker (does NOT reset nightly) ----------------
-function loadCcna() {
-  try { ccna = JSON.parse(localStorage.getItem(CCNA_KEY) || 'null'); } catch(e) { ccna = null; }
-  if (!ccna) {
-    // First-run setup
-    let dayInput = prompt('What day of CCNA content are you currently on? (1-' + CCNA_TOTAL_DAYS + ')', '10');
-    let day = parseInt(dayInput, 10);
-    if (isNaN(day) || day < 1) day = 1;
-    if (day > CCNA_TOTAL_DAYS) day = CCNA_TOTAL_DAYS;
-
-    let elapsedInput = prompt('How many days ago did you start the course (including days you skipped)?', '21');
-    let elapsed = parseInt(elapsedInput, 10);
-    if (isNaN(elapsed) || elapsed < 0) elapsed = 0;
-
-    const start = new Date();
-    start.setHours(0,0,0,0);
-    start.setDate(start.getDate() - elapsed);
-
-    ccna = {
-      currentDay: day,
-      startDate: start.toISOString(),
-      subtasks: { video:false, cards:false, lab:false },
-      completedLog: []
-    };
-    saveCcna();
+async function saveState() {
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+  } catch (e) {
+    document.getElementById('statusLine').textContent = 'Save failed. Changes may not persist.';
   }
 }
 
-function saveCcna() { localStorage.setItem(CCNA_KEY, JSON.stringify(ccna)); }
-
-function editCcna() {
-  let dayInput = prompt('Current CCNA day (1-' + CCNA_TOTAL_DAYS + ')', ccna.currentDay);
-  let day = parseInt(dayInput, 10);
-  if (!isNaN(day) && day >= 1 && day <= CCNA_TOTAL_DAYS) ccna.currentDay = day;
-
-  const daysSinceStart = Math.round((Date.now() - new Date(ccna.startDate).getTime()) / 86400000);
-  let elapsedInput = prompt('Days since you started the course', daysSinceStart);
-  let elapsed = parseInt(elapsedInput, 10);
-  if (!isNaN(elapsed) && elapsed >= 0) {
-    const start = new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate() - elapsed);
-    ccna.startDate = start.toISOString();
-  }
-  saveCcna();
-  renderCcna();
+function watchedCount() {
+  return Object.values(state.videos).filter(v => v && v.watched).length;
 }
 
-function expectedDay() {
-  const start = new Date(ccna.startDate); start.setHours(0,0,0,0);
-  const today = new Date(); today.setHours(0,0,0,0);
-  let d = Math.floor((today - start) / 86400000) + 1;
-  if (d < 1) d = 1;
-  if (d > CCNA_TOTAL_DAYS) d = CCNA_TOTAL_DAYS;
-  return d;
-}
+function computeFinish() {
+  const watched = watchedCount();
+  const remaining = TOTAL_VIDEOS - watched;
+  const rate = Math.max(1, state.rate);
 
-function toggleCcnaSub(key) {
-  ccna.subtasks[key] = !ccna.subtasks[key];
-  let justFinished = false;
-
-  if (ccna.subtasks.video && ccna.subtasks.cards && ccna.subtasks.lab) {
-    // Day complete -> log it, advance, reset subtasks
-    const todayStr = new Date().toDateString();
-    ccna.completedLog.push(todayStr);
-    if (ccna.currentDay < CCNA_TOTAL_DAYS) ccna.currentDay++;
-    ccna.subtasks = { video:false, cards:false, lab:false };
-    justFinished = true;
-
-    // mirror into daily state so streak/progress/history logic treats it like any other item
-    state.ccna = true;
-    saveState();
+  if (remaining <= 0) {
+    return { remaining: 0, days: 0, dateLabel: 'Complete', done: true };
   }
 
-  saveCcna();
-  renderCcna(justFinished);
-  updateProgress();
-  checkComplete();
+  const days = Math.ceil(remaining / rate);
+  const finish = new Date();
+  finish.setDate(finish.getDate() + days);
+  const dateLabel = finish.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+  return { remaining, days, dateLabel, done: false };
 }
 
-function renderCcna(justFinished) {
-  const root = document.getElementById('ccnaRoot');
-  if (!root) return;
+function renderStats() {
+  const watched = watchedCount();
+  const { remaining, days, dateLabel, done } = computeFinish();
 
-  if (ccna.currentDay > CCNA_TOTAL_DAYS || (ccna.currentDay === CCNA_TOTAL_DAYS && ccna.completedLog.filter(d=>true).length >= CCNA_TOTAL_DAYS && ccna.subtasks.video && false)) {
-    // (kept simple — completion banner handled below via explicit check)
+  document.getElementById('statWatched').textContent = `${watched} / ${TOTAL_VIDEOS}`;
+  document.getElementById('statRemaining').textContent = remaining;
+  document.getElementById('statDays').textContent = done ? '0' : days;
+
+  const finishEl = document.getElementById('finishDate');
+  finishEl.textContent = dateLabel;
+  finishEl.classList.toggle('done', done);
+}
+
+function renderHopbar() {
+  const track = document.getElementById('hopTrack');
+  track.innerHTML = '';
+  for (let i = 1; i <= TOTAL_VIDEOS; i++) {
+    const hop = document.createElement('div');
+    hop.className = 'hop' + (state.videos[i]?.watched ? ' done' : '');
+    track.appendChild(hop);
   }
+}
 
-  const finished = ccna.completedLog.length >= CCNA_TOTAL_DAYS;
+function renderList() {
+  const list = document.getElementById('videoList');
+  list.innerHTML = '';
 
-  if (finished) {
-    root.innerHTML = `
-      <div class="ccna-card">
-        <div class="ccna-finished">
-          <div class="ccna-finished-title">🎉 ALL ${CCNA_TOTAL_DAYS} DAYS COMPLETE</div>
-          <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">Go book the exam.</div>
-        </div>
-      </div>`;
-    return;
+  for (let i = 1; i <= TOTAL_VIDEOS; i++) {
+    const entry = state.videos[i] || { watched: false, date: '', title: '' };
+    if (showOnlyUnwatched && entry.watched) continue;
+
+    const row = document.createElement('div');
+    row.className = 'video-row' + (entry.watched ? ' watched' : '');
+
+    const check = document.createElement('div');
+    check.className = 'video-check';
+    check.addEventListener('click', () => toggleWatched(i));
+
+    const num = document.createElement('span');
+    num.className = 'video-num';
+    num.textContent = String(i).padStart(3, '0');
+
+    const title = document.createElement('input');
+    title.className = 'video-title';
+    title.type = 'text';
+    title.placeholder = `Video ${i}`;
+    title.value = entry.title || '';
+    title.addEventListener('change', (e) => {
+      setVideo(i, { title: e.target.value });
+    });
+
+    const date = document.createElement('input');
+    date.className = 'video-date';
+    date.type = 'date';
+    date.value = entry.date || '';
+    date.disabled = !entry.watched;
+    date.addEventListener('change', (e) => {
+      setVideo(i, { date: e.target.value });
+    });
+
+    row.appendChild(check);
+    row.appendChild(num);
+    row.appendChild(title);
+    row.appendChild(date);
+    list.appendChild(row);
   }
-
-  const exp = expectedDay();
-  const completedDays = ccna.currentDay - 1;
-  const behind = Math.max(0, exp - completedDays);
-  const ahead = Math.max(0, completedDays - exp);
-
-  let badgeHtml;
-  if (behind > 0) badgeHtml = `<span class="ccna-badge behind">${behind} day${behind===1?'':'s'} behind pace</span>`;
-  else if (ahead > 0) badgeHtml = `<span class="ccna-badge ahead">${ahead} day${ahead===1?'':'s'} ahead</span>`;
-  else badgeHtml = `<span class="ccna-badge pace">on pace</span>`;
-
-  const subs = [
-    { key:'video', icon:'🎥', label:'Video lesson' },
-    { key:'cards', icon:'🃏', label:'Flashcards' },
-    { key:'lab',   icon:'🔧', label:'Lab' },
-  ];
-
-  root.innerHTML = `
-    <div class="ccna-card">
-      <div class="ccna-top">
-        <div class="ccna-title-wrap">
-          <span class="ccna-title">Day</span>
-          <span class="ccna-day">${ccna.currentDay} / ${CCNA_TOTAL_DAYS}</span>
-        </div>
-        <button class="ccna-edit" onclick="editCcna()">✎</button>
-      </div>
-      <div>${badgeHtml}</div>
-      ${subs.map(s => `
-        <div class="ccna-sub ${ccna.subtasks[s.key] ? 'done' : ''}" onclick="toggleCcnaSub('${s.key}')">
-          <div class="ccna-sub-checkbox"><span class="ccna-sub-check">✓</span></div>
-          <span class="item-icon">${s.icon}</span>
-          <span class="ccna-sub-title">${s.label}</span>
-        </div>`).join('')}
-      <div class="ccna-advanced ${justFinished ? 'show' : ''}">Day ${ccna.currentDay - 1} logged — moved to Day ${ccna.currentDay} ✓</div>
-    </div>`;
 }
 
-// ---------------- Drawer ----------------
-function openDrawer() {
-  renderDrawer();
-  document.getElementById('drawerOverlay').classList.add('open');
-  document.getElementById('statsDrawer').classList.add('open');
-  document.getElementById('statsBtn').classList.add('active');
-}
-
-function closeDrawer() {
-  document.getElementById('drawerOverlay').classList.remove('open');
-  document.getElementById('statsDrawer').classList.remove('open');
-  document.getElementById('statsBtn').classList.remove('active');
-}
-
-function renderDrawer() {
-  const { useStreak, perfectStreak } = calcStreaks();
-  document.getElementById('useStreakNum').textContent = useStreak;
-  document.getElementById('perfectStreakNum').textContent = perfectStreak;
-
-  const exp = expectedDay();
-  const completedDays = ccna.currentDay - 1;
-  const behind = Math.max(0, exp - completedDays);
-  const ahead = Math.max(0, completedDays - exp);
-  const statusText = behind > 0
-    ? `<span style="color:var(--red)">${behind} day${behind===1?'':'s'} behind pace</span>`
-    : ahead > 0
-      ? `<span style="color:var(--green)">${ahead} day${ahead===1?'':'s'} ahead of pace</span>`
-      : `<span style="color:var(--muted)">right on pace</span>`;
-  document.getElementById('ccnaStatCard').innerHTML = `
-    <div class="streak-num" style="color:var(--accent)">${ccna.currentDay} / ${CCNA_TOTAL_DAYS}</div>
-    <div class="streak-label">CCNA Day</div>
-    <div class="streak-sub">${statusText}</div>`;
-
-  const root = document.getElementById('historyRoot');
-  root.innerHTML = '';
-  const today = new Date().toDateString();
-  const pastDays = Object.keys(history)
-    .filter(d => d !== today && history[d].opened)
-    .sort((a,b) => new Date(b)-new Date(a))
-    .slice(0,3);
-  if (!pastDays.length) {
-    root.innerHTML = '<div class="no-history">No history yet.<br>Come back tomorrow after your first full day.</div>';
-    return;
-  }
-  pastDays.forEach(dateStr => {
-    const rec = history[dateStr];
-    const done = rec.done || 0;
-    const totalForDay = rec.total || TOTAL;
-    const pct = Math.round((done/totalForDay)*100);
-    const d = new Date(dateStr);
-    const dayName = d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
-    const el = document.createElement('div');
-    el.className = 'history-day';
-    el.innerHTML = `
-      <div class="history-day-header" onclick="this.parentElement.classList.toggle('expanded')">
-        <div>
-          <div class="history-day-name">${dayName}</div>
-          <div class="history-day-count">${done} / ${totalForDay} tasks</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-          ${rec.perfect
-            ? '<span class="history-perfect">PERFECT ✓</span>'
-            : `<div class="history-mini-bar"><div class="history-mini-fill" style="width:${pct}%"></div></div>
-               <span style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--muted)">${pct}%</span>`
-          }
-          <span class="history-chevron">▼</span>
-        </div>
-      </div>
-      <div class="history-items">
-        ${ALL_ITEMS.map(item => `
-          <div class="history-item ${rec.items?.[item.id] ? 'did' : ''}">
-            <div class="history-dot"></div>
-            <span>${item.icon} ${item.title}</span>
-          </div>`).join('')}
-      </div>`;
-    root.appendChild(el);
-  });
-}
-
-// ---------------- Simple checklist ----------------
-function resetAll() {
-  if (state.date) archiveDay(state.date, state);
-  state = { date: new Date().toDateString() };
-  recordOpen(state.date);
+function setVideo(index, patch) {
+  const current = state.videos[index] || { watched: false, date: '', title: '' };
+  state.videos[index] = { ...current, ...patch };
   saveState();
   render();
 }
 
-function toggle(id) {
-  state[id] = !state[id];
+function toggleWatched(index) {
+  const current = state.videos[index] || { watched: false, date: '', title: '' };
+  const nowWatched = !current.watched;
+  state.videos[index] = {
+    ...current,
+    watched: nowWatched,
+    date: nowWatched ? (current.date || todayISO()) : current.date
+  };
   saveState();
-  const done = ALL_ITEMS.filter(i => state[i.id]).length;
-  if (done === TOTAL) {
-    const items = {}; ALL_ITEMS.forEach(i => { items[i.id] = !!state[i.id]; });
-    history[state.date] = { items, done:TOTAL, total:TOTAL, perfect:true, opened:true };
-    saveHistory();
-  }
-  updateItem(id); updateProgress(); checkComplete();
+  render();
 }
 
-function updateItem(id) {
-  const el = document.getElementById('item_'+id);
-  if (!el) return;
-  state[id] ? el.classList.add('done') : el.classList.remove('done');
+function render() {
+  renderStats();
+  renderHopbar();
+  renderList();
 }
 
-function updateProgress() {
-  const done = ALL_ITEMS.filter(i => state[i.id]).length;
-  document.getElementById('progressFill').style.width = (TOTAL>0?(done/TOTAL*100):0)+'%';
-  document.getElementById('progressCount').textContent = done+' / '+TOTAL;
-  const b = document.getElementById('completeBanner');
-  done===TOTAL ? b.classList.add('visible') : b.classList.remove('visible');
-}
+document.getElementById('rateInput').addEventListener('change', (e) => {
+  const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+  state.rate = val;
+  e.target.value = val;
+  saveState();
+  renderStats();
+});
 
-function checkComplete() {
-  if (ALL_ITEMS.filter(i=>state[i.id]).length===TOTAL) launchConfetti();
-}
+document.getElementById('rateUp').addEventListener('click', () => {
+  state.rate = Math.max(1, state.rate + 1);
+  document.getElementById('rateInput').value = state.rate;
+  saveState();
+  renderStats();
+});
 
-function launchConfetti() {
-  const wrap = document.getElementById('confetti');
-  wrap.innerHTML=''; wrap.classList.add('active');
-  const colors=['#00e5ff','#f5c518','#39d98a','#a855f7','#ff4d6d','#f97316'];
-  for(let i=0;i<60;i++){
-    const p=document.createElement('div'); p.className='cp';
-    p.style.left=Math.random()*100+'vw'; p.style.top='-10px';
-    p.style.background=colors[Math.floor(Math.random()*colors.length)];
-    p.style.animationDuration=(1.2+Math.random()*1.5)+'s';
-    p.style.animationDelay=(Math.random()*0.8)+'s';
-    p.style.width=p.style.height=(6+Math.random()*6)+'px';
-    wrap.appendChild(p);
-  }
-  setTimeout(()=>{ wrap.classList.remove('active'); wrap.innerHTML=''; },3000);
-}
+document.getElementById('rateDown').addEventListener('click', () => {
+  state.rate = Math.max(1, state.rate - 1);
+  document.getElementById('rateInput').value = state.rate;
+  saveState();
+  renderStats();
+});
 
-function buildChecklist() {
-  const root = document.getElementById('checklistRoot'); root.innerHTML='';
-  SIMPLE_ITEMS.forEach(item => {
-    const el=document.createElement('div');
-    el.className='check-item'+(state[item.id]?' done':'');
-    el.id='item_'+item.id;
-    el.style.setProperty('--item-color',item.color);
-    el.onclick=()=>toggle(item.id);
-    el.innerHTML=`
-      <div class="checkbox"><span class="checkmark">✓</span></div>
-      <div class="item-body">
-        <div class="item-header">
-          <span class="item-icon">${item.icon}</span>
-          <span class="item-title">${item.title}</span>
-          <span class="item-time">${item.time}</span>
-        </div>
-        <div class="item-sub">${item.sub}</div>
-      </div>`;
-    root.appendChild(el);
-  });
-}
+document.getElementById('filterToggle').addEventListener('click', (e) => {
+  showOnlyUnwatched = !showOnlyUnwatched;
+  e.target.textContent = showOnlyUnwatched ? 'Show all' : 'Show unwatched';
+  e.target.classList.toggle('active', true);
+  renderList();
+});
 
-function setDateLabel() {
-  document.getElementById('dateLabel').textContent =
-    new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
-}
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (!confirm('Clear all logged videos? This cannot be undone.')) return;
+  state.videos = {};
+  saveState();
+  render();
+});
 
-// ---------------- Inferno Tracker (persistent, not tied to daily reset) ----------------
-const INFERNO_KEY = 'morning_machine_inferno';
-let inferno = { attempts: [] };
-let editingCape = false;
-
-function loadInferno() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(INFERNO_KEY) || 'null');
-    inferno = saved || { attempts: [] };
-  } catch(e) { inferno = { attempts: [] }; }
-}
-function saveInferno() { localStorage.setItem(INFERNO_KEY, JSON.stringify(inferno)); }
-
-function openInfernoDrawer() {
-  const now = new Date();
-  document.getElementById('infDate').value = now.toISOString().slice(0,10);
-  document.getElementById('infTime').value = now.toTimeString().slice(0,5);
-  document.getElementById('infWave').value = '';
-  document.getElementById('infNote').value = '';
-  editingCape = false;
-  document.getElementById('infCapeCheckbox').classList.remove('checked');
-  document.getElementById('infernoDrawerOverlay').classList.add('open');
-  document.getElementById('infernoDrawer').classList.add('open');
-}
-function closeInfernoDrawer() {
-  document.getElementById('infernoDrawerOverlay').classList.remove('open');
-  document.getElementById('infernoDrawer').classList.remove('open');
-}
-function toggleInfCapeCheckbox() {
-  editingCape = !editingCape;
-  document.getElementById('infCapeCheckbox').classList.toggle('checked', editingCape);
-  if (editingCape) document.getElementById('infWave').value = 69;
-}
-
-function saveInfernoAttempt() {
-  const date = document.getElementById('infDate').value;
-  const time = document.getElementById('infTime').value;
-  let wave = parseInt(document.getElementById('infWave').value, 10);
-  const note = document.getElementById('infNote').value.trim();
-
-  if (!date) { alert('Pick a date.'); return; }
-  if (isNaN(wave) || wave < 1) { alert('Enter the wave you reached.'); return; }
-  if (wave > 69) wave = 69;
-
-  inferno.attempts.push({
-    id: Date.now() + '_' + Math.random().toString(36).slice(2,7),
-    date, time: time || '00:00',
-    wave, completed: editingCape || wave >= 69,
-    note
-  });
-  saveInferno();
-  closeInfernoDrawer();
-  renderInferno();
-}
-
-function deleteInfernoAttempt(id) {
-  if (!confirm('Delete this attempt?')) return;
-  inferno.attempts = inferno.attempts.filter(a => a.id !== id);
-  saveInferno();
-  renderInferno();
-}
-
-function renderInferno() {
-  const statsRoot = document.getElementById('infernoStatsRow');
-  const listRoot = document.getElementById('infernoAttemptsRoot');
-  if (!statsRoot || !listRoot) return;
-
-  const attempts = inferno.attempts;
-  const capeObtained = attempts.some(a => a.completed);
-  const bestWave = attempts.reduce((max, a) => Math.max(max, a.wave), 0);
-  const avgWave = attempts.length
-    ? Math.round(attempts.reduce((s,a) => s + a.wave, 0) / attempts.length)
-    : 0;
-
-  statsRoot.innerHTML = `
-    <div class="inferno-stat">
-      <div class="inferno-stat-num ${capeObtained ? 'cape' : ''}">${capeObtained ? '🔥' : bestWave}</div>
-      <div class="inferno-stat-label">${capeObtained ? 'Cape Obtained' : 'Best Wave'}</div>
-    </div>
-    <div class="inferno-stat">
-      <div class="inferno-stat-num">${attempts.length}</div>
-      <div class="inferno-stat-label">Attempts</div>
-    </div>
-    <div class="inferno-stat">
-      <div class="inferno-stat-num">${avgWave}</div>
-      <div class="inferno-stat-label">Avg Wave</div>
-    </div>`;
-
-  if (!attempts.length) {
-    listRoot.innerHTML = '<div class="no-attempts">No attempts logged yet.<br>Tap "+ Log Attempt" after your next run.</div>';
-    return;
-  }
-
-  const sorted = [...attempts].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
-  listRoot.innerHTML = sorted.map(a => {
-    const d = new Date(a.date + 'T' + (a.time || '00:00'));
-    const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    const timeStr = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-    return `
-      <div class="inferno-attempt ${a.completed ? 'cape' : ''}">
-        <button class="inferno-attempt-del" onclick="deleteInfernoAttempt('${a.id}')">✕</button>
-        <div class="inferno-attempt-top">
-          <div class="inferno-attempt-wave">${a.completed ? '🔥 CAPE' : 'Wave ' + a.wave}</div>
-          <div class="inferno-attempt-date">${dateStr} · ${timeStr}</div>
-        </div>
-        ${a.note ? `<div class="inferno-attempt-note">${a.note}</div>` : ''}
-      </div>`;
-  }).join('');
-}
-
-function render() { buildChecklist(); renderCcna(); renderInferno(); updateProgress(); }
-
-loadAll(); loadCcna(); loadInferno(); setDateLabel(); render();
-
-function scheduleReset() {
-  const now=new Date(), midnight=new Date(now); midnight.setHours(24,0,0,0);
-  setTimeout(()=>{ resetAll(); scheduleReset(); }, midnight-now);
-}
-scheduleReset();
+loadState();
 </script>
 </body>
 </html>
